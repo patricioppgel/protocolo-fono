@@ -5,7 +5,7 @@ import {
   Plus, Search, Printer, Pencil, Trash2, Save, X, ChevronDown,
   ChevronRight, ClipboardList, User, Calendar, ArrowLeft, AlertCircle,
   BookOpen, FileBarChart, Ear, Baby, HeartPulse, Mic2, Utensils, Brain,
-  MessageCircle, Building2, GraduationCap, FileSpreadsheet, Activity,
+  MessageCircle, Building2, GraduationCap, FileSpreadsheet, Activity, Smile, Check,
 } from "lucide-react";
 
 /* ---------------------------------------------------------------------
@@ -47,10 +47,13 @@ function blankFromNodes(nodes, acc) {
     }
   });
 }
-function blankClinico(areaId) {
+function blankFromSections(sections) {
   const acc = {};
-  AREAS[areaId].sections.forEach((s) => blankFromNodes(s.children, acc));
+  sections.forEach((s) => blankFromNodes(s.children, acc));
   return acc;
+}
+function blankClinico(areaId) {
+  return blankFromSections(AREAS[areaId].sections);
 }
 
 /* ---------------------------------------------------------------------
@@ -291,13 +294,13 @@ const AREA_AUDIOLOGIA_ADULTO = {
   label: "Audiologia — Adulto",
   disciplina: "Estágio em Audiologia",
   icon: Ear,
-  sections: [...ANAMNESE_ADULTO_SECTIONS, ...AUDIOMETRIA_SECTIONS],
+  sections: [...AUDIOMETRIA_SECTIONS],
 };
 const AREA_AUDIOLOGIA_INFANTIL = {
   label: "Audiologia — Infantil",
   disciplina: "Estágio em Audiologia",
   icon: Ear,
-  sections: [...ANAMNESE_INFANTIL_SECTIONS, ...AUDIOMETRIA_SECTIONS],
+  sections: [...AUDIOMETRIA_SECTIONS],
 };
 
 /* ---------------------------------------------------------------------
@@ -357,6 +360,49 @@ const AREA_PAC = {
       grp("MLD (Masking Level Difference)", [ txt("valor","Valor (dB)") ]),
     ]},
     { title: "Interpretação — Habilidades Auditivas Alteradas", children: [ chk("checks", PAC_HABILIDADES), ta("obs","Síntese diagnóstica e correlação com queixa/desempenho escolar",3) ] },
+  ],
+};
+
+
+/* ---------------------------------------------------------------------
+   Area — Motricidade Orofacial Infantil
+   Grounded in domínios padrão de avaliação miofuncional orofacial
+   (histórico de hábitos orais, estruturas em repouso, frênulos,
+   respiração, mastigação, deglutição, fala e oclusão) — mesma estrutura
+   usada em protocolos como MBGR e OMES-B.
+------------------------------------------------------------------------ */
+const MOI_HABITOS = [["succaoDedo","Sucção de dedo"],["usoChupeta","Uso de chupeta"],["mamadeiraProlongada","Uso de mamadeira prolongado"],["onicofagia","Onicofagia"],["bruxismo","Bruxismo"],["respiracaoOral","Respiração oral"],["roncos","Roncos"],["apneiaDoSono","Suspeita de apneia do sono"]];
+const MOI_LABIOS = [["competentes","Competentes"],["incompetentes","Incompetentes"],["hipotonicos","Hipotônicos"],["hipertonicos","Hipertônicos"]];
+const MOI_LINGUA = [["posturaAdequada","Postura adequada"],["interposta","Interposta"],["protrusa","Protrusa"]];
+const MOI_BOCHECHAS = [["tonusAdequado","Tônus adequado"],["hipotonicas","Hipotônicas"],["hipertonicas","Hipertônicas"]];
+const MOI_PALATO = [["normal","Normal"],["ogival","Ogival"],["fissura","Fissura"]];
+const MOI_FACE = [["harmonica","Face harmônica"],["retrognatismo","Retrognatismo"],["prognatismo","Prognatismo"],["assimetriaFacial","Assimetria facial"]];
+const MOI_FRENULOS = [["linguaNormal","Frênulo lingual normal"],["linguaCurto","Frênulo lingual curto / anquiloglossia"],["labialAlterado","Frênulo labial superior alterado"]];
+const MOI_RESPIRACAO = [["nasal","Nasal"],["oral","Oral"],["mista","Mista"]];
+const MOI_MASTIGACAO = [["bilateralAlternada","Bilateral alternada"],["unilateralPreferencial","Unilateral preferencial"],["incisal","Incisal / anteriorizada"]];
+const MOI_DEGLUTICAO = [["padraoAtipico","Padrão adaptado / atípico"],["projecaoLingual","Projeção lingual"],["participacaoPerioral","Participação da musculatura perioral"],["ruidos","Ruídos à deglutição"]];
+const MOI_FALA = [["compativelTipico","Articulação compatível com padrão típico"],["distorcoesEstruturais","Distorções compatíveis com alteração estrutural"],["ceceio","Ceceio"]];
+const MOI_OCLUSAO = [["mordidaAbertaAnterior","Mordida aberta anterior"],["mordidaCruzada","Mordida cruzada"],["sobressaliencia","Sobressaliência aumentada"],["classeI","Classe I de Angle (referida)"],["classeII","Classe II de Angle (referida)"],["classeIII","Classe III de Angle (referida)"]];
+
+const AREA_MOTRICIDADE_INFANTIL = {
+  label: "Motricidade Orofacial Infantil",
+  disciplina: "Estágio em Motricidade Orofacial (Infantil)",
+  icon: Smile,
+  sections: [
+    { title: "Estruturas Orofaciais em Repouso", children: [
+      grp("Lábios", [ chk("checks", MOI_LABIOS) ]),
+      grp("Língua", [ chk("checks", MOI_LINGUA) ]),
+      grp("Bochechas", [ chk("checks", MOI_BOCHECHAS) ]),
+      grp("Palato", [ chk("checks", MOI_PALATO) ]),
+      grp("Face / Mandíbula", [ chk("checks", MOI_FACE) ]),
+    ]},
+    { title: "Frênulos", children: [ chk("checks", MOI_FRENULOS), ta("obs","Obs.",2) ] },
+    { title: "Respiração", children: [ chk("checks", MOI_RESPIRACAO), ta("obs","Padrão e tipo respiratório",2) ] },
+    { title: "Mastigação", children: [ chk("checks", MOI_MASTIGACAO), ta("obs","Obs.",2) ] },
+    { title: "Deglutição", children: [ chk("checks", MOI_DEGLUTICAO), ta("obs","Obs.",2) ] },
+    { title: "Fala / Articulação Relacionada à Motricidade Orofacial", children: [ chk("checks", MOI_FALA), ta("obs","Obs.",2) ] },
+    { title: "Oclusão Dentária (achados referidos/observados)", children: [ chk("checks", MOI_OCLUSAO), ta("obs","Obs.",2) ] },
+    { title: "Diagnóstico Funcional e Conduta", children: [ ta("obs","Síntese diagnóstica e plano terapêutico de motricidade orofacial",4) ] },
   ],
 };
 
@@ -478,10 +524,6 @@ const AREA_NEONATAL = {
   disciplina: "Estágio em Neonatologia",
   icon: Baby,
   sections: [
-    { title: "Dados Gestacionais e Neonatais", children: [
-      grp("Dados de nascimento", [ txt("idadeGestacional","Idade gestacional"), txt("pesoNascimento","Peso ao nascimento"), txt("perimetroCefalico","Perímetro cefálico"), txt("apgar","Apgar (1º/5º min)") ]),
-      chk("irda", NEO_IRDA), ta("obs","Observações",2),
-    ]},
     { title: "Reflexos Orais", children: [ chk("checks", NEO_REFLEXOS), ta("obs","Presença, ausência ou inconsistência dos reflexos",2) ] },
     { title: "Avaliação das Estruturas Orofaciais", children: [ chk("checks", NEO_ESTRUTURAS), ta("obs","Morfologia, postura e tonicidade",2) ] },
     { title: "Coordenação Sucção-Deglutição-Respiração", children: [ chk("checks", NEO_SDR), ta("obs","Obs.",2) ] },
@@ -536,10 +578,6 @@ const AREA_ESCOLAR = {
   disciplina: "Estágio em Fonoaudiologia Escolar",
   icon: GraduationCap,
   sections: [
-    { title: "Contexto Escolar", children: [
-      grp("Dados escolares", [ txt("escola","Escola"), txt("serieAno","Série / ano"), txt("professor","Professor(a)") ]),
-      chk("checks", ESC_QUEIXA), ta("obs","Obs.",2),
-    ]},
     { title: "Observação em Sala de Aula", children: [ chk("checks", ESC_SALA), ta("obs","Obs.",2) ] },
     { title: "Linguagem Oral", children: [ chk("checks", ESC_LINGUAGEM), ta("obs","Obs.",2) ] },
     { title: "Consciência Fonológica", children: [ chk("checks", ESC_CF), ta("obs","Habilidades desenvolvidas / em desenvolvimento",2) ] },
@@ -548,6 +586,61 @@ const AREA_ESCOLAR = {
     { title: "Orientações à Escola e Professores", children: [ ta("obs","Orientações",3) ] },
   ],
 };
+
+/* ---------------------------------------------------------------------
+   Anamnese Geral — preenchida uma única vez por paciente (não se repete
+   a cada atendimento). Reúne identificação, queixa, desenvolvimento,
+   saúde, hábitos e contexto — o que for relevante conforme as áreas que
+   acompanham o paciente.
+------------------------------------------------------------------------ */
+const ANAM_HIST_MEDICA_GERAL = [...AUD_HIST_MEDICA, ...AUD_HIST_MEDICA_INFANTIL];
+const ANAM_APRESENTA = [["trocasNaFala","Trocas na fala"],["dificuldadeCompreensao","Dificuldade de compreensão"],["dificuldadeComunicacao","Dificuldade de comunicação"],["atrasoLinguagem","Atraso de linguagem"],["fazTratamentoFono","Já fez/faz tratamento fonoaudiológico"]];
+
+const ANAMNESE_GERAL_SECTIONS = [
+  { title: "Identificação Complementar", children: [
+    grp("Contato e encaminhamento", [ txt("escolaridadeOuProfissao","Escolaridade / profissão"), txt("encaminhamento","Encaminhamento (quem indicou)"), txt("telefoneContato","Telefone de contato") ]),
+  ]},
+  { title: "Queixa Principal e Expectativas", children: [
+    ta("queixaPrincipal","Queixa principal / motivo da avaliação",3),
+    ta("expectativas","O que a família/paciente espera do acompanhamento",2),
+  ]},
+  { title: "História Gestacional, Parto e Período Neonatal", children: [
+    grp("Nascimento", [ txt("idadeGestacional","Idade gestacional"), txt("pesoNascimento","Peso ao nascimento") ]),
+    chk("gestacao", AUD_GESTACAO, { path: "intercorrenciasQuais", label: "Com intercorrências — quais?" }),
+    chk("parto", AUD_PARTO),
+    chk("periodoNeonatal", AUD_NEONATAL, { path: "outrosNeonatal", label: "Outros" }),
+    chk("tan", AUD_TAN),
+  ]},
+  { title: "Desenvolvimento", children: [
+    chk("desenvolvimentoGlobal", AUD_DESENV_GLOBAL),
+    chk("balbucioIdadeEsperada", AUD_BALBUCIO),
+    grp("Marcos de linguagem", [ txt("primeirasPalavrasMeses","Primeiras palavras (meses)"), txt("frasesMeses","Frases (meses)") ]),
+    ta("desenvolvimentoMotor","Desenvolvimento motor (marcos)",2),
+    chk("apresenta", ANAM_APRESENTA),
+  ]},
+  { title: "História de Saúde", children: [
+    chk("checks", ANAM_HIST_MEDICA_GERAL),
+    ta("medicamentosAtuais","Medicamentos em uso atualmente",2),
+    ta("cirurgiasRealizadas","Cirurgias realizadas",2),
+  ]},
+  { title: "História Auditiva e Otológica", children: [
+    chk("checks", AUD_HIST_AUDITIVA),
+    chk("sintomas", AUD_SINTOMAS),
+    ta("obs","Obs.",2),
+  ]},
+  { title: "Hábitos Orais", children: [ chk("checks", MOI_HABITOS), txt("tempoDuracao","Tempo de duração dos hábitos"), ta("obs","Obs.",2) ] },
+  { title: "Contexto Escolar", children: [
+    grp("Dados escolares", [ txt("escola","Escola"), txt("serieAno","Série / ano"), txt("professor","Professor(a)") ]),
+    chk("checks", ESC_QUEIXA), ta("obs","Obs.",2),
+  ]},
+  { title: "História Familiar", children: [
+    txt("familiaresComPerdaAuditiva","Familiares com perda auditiva — quem?"),
+    chk("tipoPerdaFamiliar",[["congenita","Congênita"],["adquirida","Adquirida"],["naoSabe","Não sabe"]]),
+    ta("outrasCondicoesFamiliares","Outras condições de saúde na família",2),
+  ]},
+  { title: "Observações Gerais", children: [ ta("obs","Observações gerais sobre o paciente",4) ] },
+];
+const blankAnamneseGeral = () => blankFromSections(ANAMNESE_GERAL_SECTIONS);
 
 const AREAS = {
   linguagem_fala_mo: AREA_LINGUAGEM_FALA_MO,
@@ -587,6 +680,8 @@ function blankRecord(areaId) {
     clinico: blankClinico(areaId),
     procedimentos: "", evolucao: "", orientacoes: "", plano: "",
     raciocinio: { alteracao: "", evidencias: "", objetivoAlcancado: "", conduta: "" },
+    estudoDeCasoSessao: { discutido: false, resumo: "" },
+    validacaoSupervisao: { supervisorNome: "", crfaSupervisor: "", status: "pendente", dataValidacao: "", comentario: "" },
   };
 }
 
@@ -947,6 +1042,312 @@ function maskingLogText(rows) {
   if (!rows || rows.length === 0) return "Nenhum registro";
   return rows.map((m) => `${EAR_LABEL[m.orelhaTestada]} ${m.freq}Hz ${m.via === "va" ? "VA" : "VO"} — mascarado em ${EAR_LABEL[m.orelhaMascarada]}, inicial ${m.nivelInicial || "—"}dB${m.nivelEfetivo ? `, efetivo ${m.nivelEfetivo}dB` : ""}`).join(" · ");
 }
+
+/* ---------------------------------------------------------------------
+   Protocolo Aplicado — módulo genérico, presente em todas as áreas.
+   Registra qual protocolo formal foi aplicado na sessão, com uma lista
+   de itens/escores flexível. Os modelos abaixo pré-carregam os itens
+   com a estrutura de pontuação/resumo dos instrumentos padronizados
+   (não reproduzem os estímulos/itens autorais do teste em si).
+------------------------------------------------------------------------ */
+const blankProtocoloAplicado = () => ({ nome: "", dataAplicacao: "", referencia: "", escoreGeral: "", itens: [], obs: "" });
+
+const mkItens = (names) => names.map((n) => ({ id: genId(), item: n, resultado: "" }));
+
+const PROTOCOL_LIBRARY = [
+  {
+    group: "Motricidade Orofacial",
+    key: "mbgr",
+    nome: "MBGR — Exame Miofuncional Orofacial",
+    referencia: "Marchesan IQ, Berretin-Felix G, Genaro KF, Rehder MI",
+    itens: mkItens([
+      "1. Postura Corporal (0–7)",
+      "2. Exame Extraoral (0–17)",
+      "  2a. Face (0–5)", "  2b. Lábios (0–10)", "  2c. Masseter (0–2)",
+      "3. Exame Intraoral (0–57)",
+      "  3a. Lábios (0–5)", "  3b. Língua (0–17)", "  3c. Bochechas (0–8)",
+      "  3d. Palato (0–8)", "  3e. Tonsilas Palatinas (0–4)", "  3f. Dentes (0–5)", "  3g. Oclusão (0–10)",
+      "4. Mobilidade (0–54)",
+      "  4a. Lábios (0–16)", "  4b. Língua (0–16)", "  4c. Véu Palatino (0–4)", "  4d. Mandíbula (0–18)",
+      "5. Dor à Palpação (0–10)",
+      "6. Tônus (0–6)",
+      "  6a. Lábios (0–2)", "  6b. Mento (0–1)", "  6c. Língua (0–1)", "  6d. Bochechas (0–2)",
+      "7. Funções Orofaciais (0–103)",
+      "  7a. Respiração (0–7)", "  7b. Mastigação (0–10)", "  7c. Deglutição (0–39)", "  7d. Fala (0–44)", "  7e. Voz (0–3)",
+    ]),
+  },
+  {
+    group: "Linguagem Infantil / Fala",
+    key: "abfw_fonologia",
+    nome: "ABFW — Fonologia (Quadro Resumo)",
+    referencia: "Wertzner HF, in ABFW (Andrade, Befi-Lopes, Fernandes, Wertzner), Pró-Fono, 2004",
+    itens: mkItens([
+      "Redução de sílaba", "Harmonia consonantal", "Plosivação de fricativas",
+      "Posteriorização para velar", "Posteriorização para palatal", "Frontalização de velares",
+      "Frontalização de palatal", "Simplificação de líquida", "Simplificação do encontro consonantal",
+      "Simplificação da consoante final", "Sonorização de plosivas", "Sonorização de fricativas",
+      "Ensurdecimento de plosivas", "Ensurdecimento de fricativas", "Outros",
+    ]),
+  },
+  {
+    group: "Linguagem Infantil / Fala",
+    key: "abfw_vocabulario",
+    nome: "ABFW — Vocabulário (Tabela Síntese)",
+    referencia: "Befi-Lopes DM, in ABFW (Andrade, Befi-Lopes, Fernandes, Wertzner), Pró-Fono, 2004",
+    itens: mkItens([
+      "Vestuário", "Animais", "Alimentos", "Meios de transporte", "Móveis e utensílios",
+      "Profissões", "Locais", "Formas e cores", "Brinquedos e instrumentos musicais",
+    ]),
+  },
+  {
+    group: "Linguagem Infantil / Fala",
+    key: "abfw_fluencia",
+    nome: "ABFW — Fluência (Protocolo de Avaliação)",
+    referencia: "Andrade CRF, in ABFW (Andrade, Befi-Lopes, Fernandes, Wertzner), Pró-Fono, 2004",
+    itens: mkItens([
+      "Hesitação", "Interjeição", "Revisão", "Palavra não terminada", "Repetição de palavras",
+      "Repetição de segmentos", "Repetição de frases", "Total disfluências comuns",
+      "Repetição de sílabas", "Repetição de sons", "Prolongamento", "Bloqueio", "Pausa",
+      "Intrusão de sons ou segmentos", "Total disfluências gagas",
+      "Fluxo de palavras por minuto", "Fluxo de sílabas por minuto",
+      "% Descontinuidade de fala", "% Disfluências gagas",
+    ]),
+  },
+  {
+    group: "Linguagem Infantil / Fala",
+    key: "abfw_pragmatica",
+    nome: "ABFW — Pragmática (Ficha-Síntese)",
+    referencia: "Fernandes FDM, in ABFW (Andrade, Befi-Lopes, Fernandes, Wertzner), Pró-Fono, 2004",
+    itens: mkItens([
+      "Total de atos comunicativos", "Atos por minuto", "% do total",
+      "PO", "RO", "EX", "EP", "PR", "PE", "NA",
+      "PS", "C", "NF", "PA", "E", "JC", "RE",
+      "PI", "N", "XP", "PC", "AR", "J",
+    ]),
+  },
+  {
+    group: "Linguagem Infantil / Fala",
+    key: "adl2",
+    nome: "ADL2 — Avaliação do Desenvolvimento da Linguagem",
+    referencia: "Menezes ML, PhD — ADL2, Protocolo de Aplicação e Pontuação",
+    itens: mkItens([
+      "1a a 1a5m — LC/LE", "1a6m a 1a11m — LC/LE", "2a a 2a5m — LC/LE", "2a6m a 2a11m — LC/LE",
+      "3a a 3a5m — LC/LE", "3a6m a 3a11m — LC/LE", "4a a 4a5m — LC/LE", "4a6m a 4a11m — LC/LE",
+      "5a a 5a5m — LC/LE", "5a6m a 5a11m — LC/LE", "6a a 6a5m — LC/LE", "6a6m a 6a11m — LC/LE",
+      "Linguagem Receptiva — Última tarefa correta", "Linguagem Receptiva — Menos respostas incorretas",
+      "Linguagem Receptiva — Escore Bruto", "Linguagem Receptiva — Escore Padrão",
+      "Linguagem Expressiva — Última tarefa correta", "Linguagem Expressiva — Menos respostas incorretas",
+      "Linguagem Expressiva — Escore Bruto", "Linguagem Expressiva — Escore Padrão",
+      "Linguagem Global — Escore Bruto", "Linguagem Global — Escore Padrão",
+    ]),
+  },
+  {
+    group: "Linguagem Infantil / Fala",
+    key: "adl2_fonologia",
+    nome: "ADL2 — Observação da Aquisição Fonológica e do Vocabulário",
+    referencia: "Menezes ML, PhD — complementar à ADL2 (não é um teste fonoaudiológico padronizado)",
+    itens: mkItens([
+      "3a a 3a5m (itens 1–19)", "3a6m a 3a11m (itens 20–24)", "4a a 4a5m (itens 25–28)",
+      "4a6m a 4a11m (itens 29–32)", "5a a 5a11m (itens 33–40)",
+    ]),
+  },
+  {
+    group: "Linguagem Infantil / Fala",
+    key: "proc",
+    nome: "PROC — Protocolo de Observação Comportamental",
+    referencia: "PROC — Protocolo de Observação Comportamental",
+    itens: mkItens([
+      "1. Habilidades comunicativas expressivas (máx. 70)",
+      "  1a. Habilidades dialógicas/conversacionais", "  1b. Funções comunicativas",
+      "2. Compreensão da linguagem verbal (máx. 60)",
+      "3. Aspectos do desenvolvimento cognitivo (máx. 70)",
+      "  3a. Formas de manipulação dos objetos",
+      "TOTAL (máx. 200)",
+    ]),
+  },
+];
+
+/* ---------------------------------------------------------------------
+   Cálculo automático do "Protocolo Aplicado": soma apenas os itens de
+   nível principal (não indentados, e que não sejam a própria linha de
+   "TOTAL") para não contar domínios e subdomínios em duplicidade. O
+   valor máximo é extraído do próprio rótulo do item quando presente,
+   no formato "(0–N)" ou "(máx. N)".
+------------------------------------------------------------------------ */
+function isSubItemLabel(label) { return /^\s{2}/.test(label || ""); }
+function isTotalItemLabel(label) { return /total/i.test(label || ""); }
+function parseMaxFromLabel(label) {
+  const m = (label || "").match(/\(0\s*[–-]\s*(\d+(?:[.,]\d+)?)\)/) || (label || "").match(/máx\.?\s*(\d+(?:[.,]\d+)?)/i);
+  return m ? parseFloat(m[1].replace(",", ".")) : null;
+}
+function computeProtocoloTotais(itens) {
+  const summable = (itens || []).filter((it) => !isSubItemLabel(it.item) && !isTotalItemLabel(it.item) && it.resultado !== "" && !isNaN(parseFloat(it.resultado)));
+  if (summable.length === 0) return null;
+  const total = summable.reduce((a, it) => a + parseFloat(it.resultado), 0);
+  const maxes = summable.map((it) => parseMaxFromLabel(it.item));
+  const max = maxes.every((m) => m != null) ? maxes.reduce((a, m) => a + m, 0) : null;
+  return { total, max, pct: max ? Math.round((total / max) * 100) : null, count: summable.length };
+}
+function ProtocoloChart({ itens }) {
+  const rows = (itens || [])
+    .filter((it) => !isSubItemLabel(it.item) && it.item && it.resultado !== "" && !isNaN(parseFloat(it.resultado)))
+    .map((it) => ({ label: it.item.length > 34 ? it.item.slice(0, 33) + "…" : it.item, value: parseFloat(it.resultado), max: parseMaxFromLabel(it.item) }));
+  if (rows.length === 0) return null;
+  const W = 480, rowH = 22, padL = 190, padR = 46, padT = 6;
+  const H = padT + rows.length * rowH + 4;
+  const globalMax = Math.max(...rows.map((r) => r.max || r.value || 1), 1);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ maxWidth: 480, background: T.surface, border: "1px solid " + T.lineSoft, borderRadius: 6 }}>
+      {rows.map((r, i) => {
+        const y = padT + i * rowH;
+        const scaleMax = r.max || globalMax;
+        const barW = Math.max(2, ((W - padL - padR) * Math.min(r.value, scaleMax)) / scaleMax);
+        const over = r.value > scaleMax;
+        return (
+          <g key={i}>
+            <text x={padL - 6} y={y + rowH / 2 + 3} fontSize="9" textAnchor="end" fill={T.inkSoft}>{r.label}</text>
+            <rect x={padL} y={y + 4} width={W - padL - padR} height={rowH - 9} fill={T.lineSoft} rx="2" />
+            <rect x={padL} y={y + 4} width={barW} height={rowH - 9} fill={over ? T.warn : T.accent} rx="2" />
+            <text x={padL + Math.max(barW, 14) + 4} y={y + rowH / 2 + 3} fontSize="9" fill={T.inkFaint}>{r.value}{r.max != null ? ` / ${r.max}` : ""}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+function gerarSinteseProtocolo(value) {
+  const t = computeProtocoloTotais(value.itens);
+  if (!t) return "Preencha os resultados numéricos dos itens para gerar uma síntese automática.";
+  const topItens = (value.itens || []).filter((it) => !isSubItemLabel(it.item) && !isTotalItemLabel(it.item) && it.resultado !== "" && !isNaN(parseFloat(it.resultado)));
+  const pior = topItens.length ? topItens.reduce((a, b) => {
+    const pa = parseMaxFromLabel(a.item), pb = parseMaxFromLabel(b.item);
+    const ra = pa ? parseFloat(a.resultado) / pa : parseFloat(a.resultado);
+    const rb = pb ? parseFloat(b.resultado) / pb : parseFloat(b.resultado);
+    return rb > ra ? b : a;
+  }) : null;
+  const parts = [];
+  parts.push(`Na aplicação do protocolo ${value.nome || "informado"}${value.dataAplicacao ? " em " + value.dataAplicacao : ""}, obteve-se escore total de ${t.total}${t.max ? ` em ${t.max} pontos possíveis (${t.pct}%)` : ""}.`);
+  if (pior) parts.push(`O domínio com maior pontuação/alteração foi "${pior.item.trim()}" (${pior.resultado}${parseMaxFromLabel(pior.item) ? "/" + parseMaxFromLabel(pior.item) : ""}).`);
+  parts.push("Recomenda-se correlacionar este resultado com a avaliação clínica e, quando aplicável, comparar com reavaliações futuras para acompanhar a evolução.");
+  return parts.join(" ");
+}
+
+function ProtocoloAplicadoEditor({ value, onChange, disabled }) {
+  const applyTemplate = (key) => {
+    const tpl = PROTOCOL_LIBRARY.find((t) => t.key === key);
+    if (!tpl) return;
+    if ((value.itens || []).length > 0 && !window.confirm("Isso substitui os itens já preenchidos por este modelo. Continuar?")) return;
+    onChange("nome", tpl.nome);
+    onChange("referencia", tpl.referencia);
+    onChange("itens", mkItens(tpl.itens.map((it) => it.item)));
+  };
+  const itens = value.itens || [];
+  const addItem = () => onChange("itens", [...itens, { id: genId(), item: "", resultado: "" }]);
+  const updateItem = (id, field, v) => onChange("itens", itens.map((it) => (it.id === id ? { ...it, [field]: v } : it)));
+  const removeItem = (id) => onChange("itens", itens.filter((it) => it.id !== id));
+  const totais = computeProtocoloTotais(itens);
+  const calcularEscore = () => { if (totais) onChange("escoreGeral", `${totais.total}${totais.max ? ` / ${totais.max} (${totais.pct}%)` : ""}`); };
+  return (
+    <div className="flex flex-col gap-3">
+      {!disabled && (
+        <Field label="Usar um modelo de protocolo pronto (opcional)">
+          <select defaultValue="" onChange={(e) => { if (e.target.value) applyTemplate(e.target.value); e.target.value = ""; }} style={inputBase}>
+            <option value="">Selecionar modelo…</option>
+            {Object.entries(_.groupBy(PROTOCOL_LIBRARY, "group")).map(([group, tpls]) => (
+              <optgroup key={group} label={group}>
+                {tpls.map((t) => <option key={t.key} value={t.key}>{t.nome}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </Field>
+      )}
+      <div className="grid sm:grid-cols-2 gap-3">
+        <Field label="Nome do protocolo"><TextInput value={value.nome} disabled={disabled} onChange={(v) => onChange("nome", v)} placeholder="Ex.: (a definir quando o protocolo for informado)" /></Field>
+        <Field label="Data de aplicação"><TextInput type="date" value={value.dataAplicacao} disabled={disabled} onChange={(v) => onChange("dataAplicacao", v)} /></Field>
+        <Field label="Referência / versão"><TextInput value={value.referencia} disabled={disabled} onChange={(v) => onChange("referencia", v)} /></Field>
+        <Field label="Escore geral / resultado">
+          <div className="flex gap-2">
+            <TextInput value={value.escoreGeral} disabled={disabled} onChange={(v) => onChange("escoreGeral", v)} />
+            {!disabled && totais && <button onClick={calcularEscore} title="Somar automaticamente os itens de nível principal" style={{ fontSize: 11, color: T.accent, whiteSpace: "nowrap" }}>Calcular</button>}
+          </div>
+        </Field>
+      </div>
+      <SubBlock title="Itens avaliados">
+        <div className="flex flex-col gap-2">
+          {itens.length === 0 && <div style={{ fontSize: 11.5, color: T.inkFaint }}>Nenhum item adicionado.</div>}
+          {itens.map((it) => (
+            <div key={it.id} className="flex flex-wrap items-center gap-2 p-2" style={{ background: T.surface, border: "1px solid " + T.lineSoft, borderRadius: 6 }}>
+              <input value={it.item} disabled={disabled} onChange={(e) => updateItem(it.id, "item", e.target.value)} placeholder="Item / domínio avaliado" style={{ ...cellInput, width: 220, textAlign: "left" }} />
+              <input value={it.resultado} disabled={disabled} onChange={(e) => updateItem(it.id, "resultado", e.target.value)} placeholder="Resultado / escore" style={{ ...cellInput, width: 160, textAlign: "left" }} />
+              {!disabled && <button onClick={() => removeItem(it.id)} style={{ color: T.warn, marginLeft: "auto" }}><Trash2 size={14} /></button>}
+            </div>
+          ))}
+          {!disabled && (
+            <button onClick={addItem} className="flex items-center gap-1.5 self-start" style={{ fontSize: 12, color: T.accent, fontWeight: 500 }}>
+              <Plus size={14} /> Adicionar item
+            </button>
+          )}
+        </div>
+      </SubBlock>
+      {totais && (
+        <div className="flex flex-col gap-1.5 p-3" style={{ background: T.accentSoft, borderRadius: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: T.accentDeep }}>
+            Escore calculado (itens de nível principal): {totais.total}{totais.max ? ` / ${totais.max} (${totais.pct}%)` : ""}
+          </div>
+          <ProtocoloChart itens={itens} />
+        </div>
+      )}
+      <Field label="Observações / interpretação">
+        <TextArea rows={3} value={value.obs} disabled={disabled} onChange={(v) => onChange("obs", v)} />
+      </Field>
+      {!disabled && (
+        <button onClick={() => onChange("obs", gerarSinteseProtocolo(value))} className="flex items-center gap-1.5 self-start" style={{ fontSize: 12, color: T.accent, fontWeight: 500 }}>
+          <FileBarChart size={14} /> Gerar síntese automática
+        </button>
+      )}
+    </div>
+  );
+}
+function ProtocoloAplicadoReadView({ value }) {
+  if (!value?.nome && (!value?.itens || value.itens.length === 0)) return <ReadRow value="Nenhum protocolo registrado nesta sessão." />;
+  const totais = computeProtocoloTotais(value.itens);
+  return (
+    <div className="flex flex-col gap-2">
+      <ReadRow label="Protocolo" value={value.nome} />
+      <ReadRow label="Data de aplicação" value={value.dataAplicacao} />
+      <ReadRow label="Referência / versão" value={value.referencia} />
+      <ReadRow label="Escore geral" value={value.escoreGeral} />
+      {totais && <ReadRow label="Escore calculado" value={`${totais.total}${totais.max ? ` / ${totais.max} (${totais.pct}%)` : ""}`} />}
+      {(value.itens || []).length > 0 && (
+        <ReadRow label="Itens avaliados" value={value.itens.map((it) => `${it.item || "—"}: ${it.resultado || "—"}`).join(" · ")} />
+      )}
+      {totais && <div className="my-1"><ProtocoloChart itens={value.itens} /></div>}
+      <ReadRow label="Observações" value={value.obs} />
+    </div>
+  );
+}
+function protocoloAplicadoTextLines(value) {
+  if (!value?.nome && (!value?.itens || value.itens.length === 0)) return [["Protocolo aplicado", "Nenhum registrado"]];
+  const totais = computeProtocoloTotais(value.itens);
+  return [
+    ["Protocolo", value.nome || "—"],
+    ["Data de aplicação", value.dataAplicacao || "—"],
+    ["Referência / versão", value.referencia || "—"],
+    ["Escore geral", value.escoreGeral || "—"],
+    ...(totais ? [["Escore calculado", `${totais.total}${totais.max ? ` / ${totais.max} (${totais.pct}%)` : ""}`]] : []),
+    ["Itens avaliados", (value.itens || []).map((it) => `${it.item || "—"}: ${it.resultado || "—"}`).join(" · ") || "—"],
+    ["Observações", value.obs || "—"],
+  ];
+}
+
+// Anexa a seção "Protocolo Aplicado" ao final de cada área — genérica por
+// enquanto; será detalhada por área assim que os protocolos forem enviados.
+Object.values(AREAS).forEach((area) => {
+  area.sections.push({
+    title: "Protocolo Aplicado",
+    children: [ cst("protocoloAplicado", blankProtocoloAplicado, ProtocoloAplicadoEditor, ProtocoloAplicadoReadView, protocoloAplicadoTextLines) ],
+  });
+});
 
 function AudiogramEditor({ value, onChange, disabled }) {
   const setEar = (ear, cond, freq, v) => onChange(`${ear}.${cond}.${freq}`, v);
@@ -1371,24 +1772,23 @@ function SchemaField({ node, data, onChange, disabled }) {
   );
 }
 
-function ClinicoForm({ areaId, clinico, setClinico }) {
-  const area = AREAS[areaId];
+function ClinicoForm({ sections, clinico, setClinico, startNumber = 3 }) {
   const [open, setOpen] = useState({ 0: true });
   const toggle = (i) => setOpen((s) => ({ ...s, [i]: !s[i] }));
   const onChange = (path, value) => setClinico((prev) => _.set(_.cloneDeep(prev), path, value));
-  const allOpen = Object.values(open).filter(Boolean).length >= area.sections.length;
+  const allOpen = Object.values(open).filter(Boolean).length >= sections.length;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-end">
         <button
-          onClick={() => setOpen(allOpen ? {} : Object.fromEntries(area.sections.map((_s, i) => [i, true])))}
+          onClick={() => setOpen(allOpen ? {} : Object.fromEntries(sections.map((_s, i) => [i, true])))}
           style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12.5, color: T.accent, fontWeight: 500 }}
         >
           {allOpen ? "Recolher tudo" : "Expandir tudo"}
         </button>
       </div>
-      {area.sections.map((s, i) => (
-        <Section key={i} number={i + 3} title={s.title} open={!!open[i]} onToggle={() => toggle(i)}>
+      {sections.map((s, i) => (
+        <Section key={i} number={i + startNumber} title={s.title} open={!!open[i]} onToggle={() => toggle(i)}>
           {s.children.map((c, j) => <SchemaField key={j} node={c} data={clinico} onChange={onChange} />)}
         </Section>
       ))}
@@ -1430,12 +1830,11 @@ function PrintSection({ number, title, children }) {
     </div>
   );
 }
-function ClinicoReadView({ areaId, clinico }) {
-  const area = AREAS[areaId];
+function ClinicoReadView({ sections, clinico, startNumber = 3 }) {
   return (
     <>
-      {area.sections.map((s, i) => (
-        <PrintSection key={i} number={i + 3} title={s.title}>
+      {sections.map((s, i) => (
+        <PrintSection key={i} number={i + startNumber} title={s.title}>
           <div className="flex flex-col gap-2">
             {s.children.map((c, j) => {
               if (c.type === "custom") {
@@ -1475,7 +1874,7 @@ function sectionTextLines(section, clinico) {
 }
 
 async function generateRecordPDF(record) {
-  const { jsPDF } = await import("jspdf");
+  const { jsPDF } = await import("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210, pageH = 297, mL = 16, mR = 16, mT = 18, mB = 18;
   const contentW = pageW - mL - mR;
@@ -1528,8 +1927,8 @@ async function generateRecordPDF(record) {
 
   sectionHeader(1, "Identificação");
   kvGrid([
-    ["Estagiário(a)", id.estagiario], ["Matrícula", id.matricula],
-    ["Supervisor(a)", id.supervisor], ["CRFa", id.crfa],
+    ["Fonoaudiólogo(a) responsável", id.supervisor], ["CRFa", id.crfa],
+    ["Estagiário(a) (se houver)", id.estagiario], ["Matrícula", id.matricula],
     ["Data", id.data], ["Horário", id.horario],
     ["Sessão nº", id.sessaoNum], ["Área", AREAS[record.area]?.label],
   ]);
@@ -1561,7 +1960,19 @@ async function generateRecordPDF(record) {
     ["Objetivo alcançado", record.raciocinio.objetivoAlcancado], ["Conduta seguinte", record.raciocinio.conduta],
   ]);
 
-  sectionHeader(n + 8, "Assinaturas");
+  sectionHeader(n + 8, "Estudo de Caso (desta sessão)");
+  kv("Discutido em estudo de caso?", record.estudoDeCasoSessao?.discutido ? "Sim" : "Não");
+  if (record.estudoDeCasoSessao?.resumo) kv("Resumo da discussão", record.estudoDeCasoSessao.resumo);
+
+  sectionHeader(n + 9, "Validação da Supervisão");
+  kv("Status", record.validacaoSupervisao?.status === "validado" ? "Validado" : "Pendente de validação");
+  kvGrid([
+    ["Supervisor(a)", record.validacaoSupervisao?.supervisorNome], ["CRFa", record.validacaoSupervisao?.crfaSupervisor],
+    ["Data da validação", record.validacaoSupervisao?.dataValidacao], [null, null],
+  ]);
+  if (record.validacaoSupervisao?.comentario) kv("Comentário", record.validacaoSupervisao.comentario);
+
+  sectionHeader(n + 10, "Assinaturas");
   ensure(42);
   pos.y += 18;
   const colW = (contentW - 10) / 2;
@@ -1570,12 +1981,12 @@ async function generateRecordPDF(record) {
   doc.line(mL + colW + 10, pos.y, mL + colW + 10 + colW, pos.y);
   pos.y += 4;
   doc.setFont(undefined, "normal"); doc.setFontSize(9); doc.setTextColor(...ink);
-  doc.text(id.estagiario || "Estagiário(a)", mL, pos.y);
-  doc.text(id.supervisor || "Supervisor(a)", mL + colW + 10, pos.y);
+  doc.text(id.supervisor || "Fonoaudiólogo(a) responsável", mL, pos.y);
+  doc.text(id.estagiario || "Estagiário(a) (se houver)", mL + colW + 10, pos.y);
   pos.y += 4;
   doc.setFontSize(8); doc.setTextColor(...inkSoft);
-  doc.text(`Estagiário(a)${id.matricula ? " · Mat. " + id.matricula : ""}`, mL, pos.y);
-  doc.text(`Supervisor(a)${id.crfa ? " · CRFa " + id.crfa : ""}`, mL + colW + 10, pos.y);
+  doc.text(`Fonoaudiólogo(a) responsável${id.crfa ? " · CRFa " + id.crfa : ""}`, mL, pos.y);
+  doc.text(`Estagiário(a)${id.matricula ? " · Mat. " + id.matricula : ""}`, mL + colW + 10, pos.y);
   pos.y += 8;
   doc.text("Data: ____/____/________", mL, pos.y);
   doc.text("Data: ____/____/________", mL + colW + 10, pos.y);
@@ -1593,7 +2004,7 @@ function isAudiologyRecord(record) {
    separate from the full session record, ready to hand to the patient or
    referring physician and to be signed by the supervising audiologist. */
 async function generateLaudoPDF(record) {
-  const { jsPDF } = await import("jspdf");
+  const { jsPDF } = await import("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210, mL = 20, mR = 20, mT = 20;
   const contentW = pageW - mL - mR;
@@ -1674,10 +2085,10 @@ function RecordReadView({ record }) {
           <ReadRow label="Instituição" value={id.instituicao} />
           <ReadRow label="Curso" value={id.curso} />
           <ReadRow label="Disciplina" value={id.disciplina} />
-          <ReadRow label="Estagiário(a)" value={id.estagiario} />
-          <ReadRow label="Matrícula" value={id.matricula} />
-          <ReadRow label="Supervisor(a)" value={id.supervisor} />
+          <ReadRow label="Fonoaudiólogo(a) responsável" value={id.supervisor} />
           <ReadRow label="CRFa" value={id.crfa} />
+          <ReadRow label="Estagiário(a) (se houver)" value={id.estagiario} />
+          <ReadRow label="Matrícula" value={id.matricula} />
           <ReadRow label="Data" value={id.data} />
           <ReadRow label="Horário" value={id.horario} />
           <ReadRow label="Sessão nº" value={id.sessaoNum} />
@@ -1695,7 +2106,7 @@ function RecordReadView({ record }) {
         </div>
       </PrintSection>
 
-      <ClinicoReadView areaId={record.area} clinico={record.clinico} />
+      <ClinicoReadView sections={AREAS[record.area].sections} clinico={record.clinico} />
 
       {(() => {
         const n = AREAS[record.area].sections.length;
@@ -1713,16 +2124,29 @@ function RecordReadView({ record }) {
                 <ReadRow label="Conduta seguinte" value={record.raciocinio.conduta} />
               </div>
             </PrintSection>
-            <PrintSection number={n + 8} title="Assinaturas">
+            <PrintSection number={n + 8} title="Estudo de Caso (desta sessão)">
+              <ReadRow label="Discutido em estudo de caso?" value={record.estudoDeCasoSessao?.discutido ? "Sim" : "Não"} />
+              {record.estudoDeCasoSessao?.resumo && <ReadRow label="Resumo da discussão" value={record.estudoDeCasoSessao.resumo} />}
+            </PrintSection>
+            <PrintSection number={n + 9} title="Validação da Supervisão">
+              <ReadRow label="Status" value={record.validacaoSupervisao?.status === "validado" ? "✓ Validado" : "Pendente de validação"} />
+              <div className="grid sm:grid-cols-2 gap-3">
+                <ReadRow label="Supervisor(a)" value={record.validacaoSupervisao?.supervisorNome} />
+                <ReadRow label="CRFa" value={record.validacaoSupervisao?.crfaSupervisor} />
+                <ReadRow label="Data da validação" value={record.validacaoSupervisao?.dataValidacao} />
+              </div>
+              {record.validacaoSupervisao?.comentario && <ReadRow label="Comentário" value={record.validacaoSupervisao.comentario} />}
+            </PrintSection>
+            <PrintSection number={n + 10} title="Assinaturas">
               <div className="grid sm:grid-cols-2 gap-8" style={{ marginTop: 30 }}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ borderTop: "1px solid " + T.ink, paddingTop: 6, fontSize: 13 }}>{id.estagiario || "Estagiário(a)"}</div>
-                  <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>Estagiário(a){id.matricula ? " · Mat. " + id.matricula : ""}</div>
+                  <div style={{ borderTop: "1px solid " + T.ink, paddingTop: 6, fontSize: 13 }}>{id.supervisor || "Fonoaudiólogo(a) responsável"}</div>
+                  <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>Fonoaudiólogo(a) responsável{id.crfa ? " · CRFa " + id.crfa : ""}</div>
                   <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 10 }}>Data: ____/____/________</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ borderTop: "1px solid " + T.ink, paddingTop: 6, fontSize: 13 }}>{id.supervisor || "Supervisor(a)"}</div>
-                  <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>Supervisor(a){id.crfa ? " · CRFa " + id.crfa : ""}</div>
+                  <div style={{ borderTop: "1px solid " + T.ink, paddingTop: 6, fontSize: 13 }}>{id.estagiario || "Estagiário(a) (se houver)"}</div>
+                  <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>Estagiário(a){id.matricula ? " · Mat. " + id.matricula : ""}</div>
                   <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 10 }}>Data: ____/____/________</div>
                 </div>
               </div>
@@ -1734,73 +2158,112 @@ function RecordReadView({ record }) {
   );
 }
 
-function RecordForm({ areaId, record, setRecord, patientNames, onSelectExisting }) {
+function RecordForm({ areaId, record, setRecord, perfil }) {
   const set = (path, value) => setRecord((prev) => _.set(_.cloneDeep(prev), path, value));
+  const papelEfetivo = typeof window !== "undefined" && window.authProfile ? window.authProfile.papel : perfil?.papel;
+  const nomeEfetivo = typeof window !== "undefined" && window.authProfile?.nome ? window.authProfile.nome : perfil?.nome;
+  const souSupervisor = papelEfetivo === "supervisor" || papelEfetivo === "admin";
+  const validar = () => {
+    set("validacaoSupervisao.status", "validado");
+    set("validacaoSupervisao.supervisorNome", nomeEfetivo || record.validacaoSupervisao.supervisorNome);
+    set("validacaoSupervisao.crfaSupervisor", perfil?.crfa || record.validacaoSupervisao.crfaSupervisor);
+    set("validacaoSupervisao.dataValidacao", new Date().toISOString().slice(0, 10));
+  };
+  const desfazerValidacao = () => { set("validacaoSupervisao.status", "pendente"); set("validacaoSupervisao.dataValidacao", ""); };
   return (
     <div className="flex flex-col gap-3">
-      <Section number="1" title="Identificação" open onToggle={() => {}}>
+      <div className="flex items-center gap-3 p-3" style={{ background: T.accentSoft, borderRadius: 10 }}>
+        <User size={16} color={T.accentDeep} />
+        <div>
+          <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 14, color: T.ink }}>{record.paciente.nome}</div>
+          <div style={{ fontSize: 11.5, color: T.inkSoft }}>{AREAS[areaId].label} · dados do paciente e anamnese ficam na ficha do paciente</div>
+        </div>
+      </div>
+
+      <Section number="1" title="Identificação do Atendimento" open onToggle={() => {}}>
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Área de atuação" span={2}>
-            <div style={{ ...inputBase, background: T.surfaceSoft, color: T.inkSoft }}>{AREAS[areaId].label}</div>
-          </Field>
           <Field label="Instituição" span={2}><TextInput value={record.identificacao.instituicao} onChange={(v) => set("identificacao.instituicao", v)} /></Field>
           <Field label="Curso"><TextInput value={record.identificacao.curso} onChange={(v) => set("identificacao.curso", v)} /></Field>
           <Field label="Disciplina"><TextInput value={record.identificacao.disciplina} onChange={(v) => set("identificacao.disciplina", v)} /></Field>
-          <Field label="Estagiário(a)"><TextInput value={record.identificacao.estagiario} onChange={(v) => set("identificacao.estagiario", v)} /></Field>
-          <Field label="Matrícula"><TextInput value={record.identificacao.matricula} onChange={(v) => set("identificacao.matricula", v)} /></Field>
-          <Field label="Supervisor(a)"><TextInput value={record.identificacao.supervisor} onChange={(v) => set("identificacao.supervisor", v)} /></Field>
+          <Field label="Fonoaudiólogo(a) responsável"><TextInput value={record.identificacao.supervisor} onChange={(v) => set("identificacao.supervisor", v)} /></Field>
           <Field label="CRFa"><TextInput value={record.identificacao.crfa} onChange={(v) => set("identificacao.crfa", v)} /></Field>
+          <Field label="Estagiário(a) (se houver)"><TextInput value={record.identificacao.estagiario} onChange={(v) => set("identificacao.estagiario", v)} /></Field>
+          <Field label="Matrícula"><TextInput value={record.identificacao.matricula} onChange={(v) => set("identificacao.matricula", v)} /></Field>
           <Field label="Data"><TextInput type="date" value={record.identificacao.data} onChange={(v) => set("identificacao.data", v)} /></Field>
           <Field label="Horário"><TextInput type="time" value={record.identificacao.horario} onChange={(v) => set("identificacao.horario", v)} /></Field>
           <Field label="Sessão nº"><TextInput type="number" value={record.identificacao.sessaoNum} onChange={(v) => set("identificacao.sessaoNum", v)} /></Field>
         </div>
       </Section>
 
-      <Section number="2" title="Paciente" open onToggle={() => {}}>
-        {patientNames.length > 0 && (
-          <Field label="Preencher a partir de um paciente já registrado (opcional)">
-            <select onChange={(e) => e.target.value && onSelectExisting(e.target.value)} defaultValue="" style={inputBase}>
-              <option value="">Novo paciente</option>
-              {patientNames.map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </Field>
-        )}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Nome" span={2}><TextInput value={record.paciente.nome} onChange={(v) => set("paciente.nome", v)} /></Field>
-          <Field label="Nascimento"><TextInput type="date" value={record.paciente.nascimento} onChange={(v) => set("paciente.nascimento", v)} /></Field>
-          <Field label="Idade"><TextInput value={record.paciente.idade} onChange={(v) => set("paciente.idade", v)} /></Field>
-          <Field label="Responsável" span={2}><TextInput value={record.paciente.responsavel} onChange={(v) => set("paciente.responsavel", v)} /></Field>
-          <Field label="Hipótese diagnóstica" span={2}><TextInput value={record.paciente.hipotese} onChange={(v) => set("paciente.hipotese", v)} /></Field>
-          <Field label="CID"><TextInput value={record.paciente.cid} onChange={(v) => set("paciente.cid", v)} /></Field>
-          <Field label="Tempo de acompanhamento"><TextInput value={record.paciente.tempoAcompanhamento} onChange={(v) => set("paciente.tempoAcompanhamento", v)} /></Field>
-        </div>
-      </Section>
-
-      <ClinicoForm areaId={areaId} clinico={record.clinico} setClinico={(updater) => setRecord((prev) => ({ ...prev, clinico: typeof updater === "function" ? updater(prev.clinico) : updater }))} />
+      <ClinicoForm sections={AREAS[areaId].sections} startNumber={2} clinico={record.clinico} setClinico={(updater) => setRecord((prev) => ({ ...prev, clinico: typeof updater === "function" ? updater(prev.clinico) : updater }))} />
 
       {(() => {
         const n = AREAS[areaId].sections.length;
         return (
           <>
-            <Section number={n + 3} title="Procedimentos Realizados" open onToggle={() => {}}>
+            <Section number={n + 2} title="Procedimentos Realizados" open onToggle={() => {}}>
               <TextArea rows={4} value={record.procedimentos} onChange={(v) => set("procedimentos", v)} />
             </Section>
-            <Section number={n + 4} title="Evolução Clínica" open onToggle={() => {}}>
+            <Section number={n + 3} title="Evolução Clínica" open onToggle={() => {}}>
               <TextArea rows={4} value={record.evolucao} onChange={(v) => set("evolucao", v)} />
             </Section>
-            <Section number={n + 5} title="Orientações à Família" open onToggle={() => {}}>
+            <Section number={n + 4} title="Orientações à Família" open onToggle={() => {}}>
               <TextArea rows={3} value={record.orientacoes} onChange={(v) => set("orientacoes", v)} />
             </Section>
-            <Section number={n + 6} title="Plano para Próxima Sessão" open onToggle={() => {}}>
+            <Section number={n + 5} title="Plano para Próxima Sessão" open onToggle={() => {}}>
               <TextArea rows={3} value={record.plano} onChange={(v) => set("plano", v)} />
             </Section>
-            <Section number={n + 7} title="Raciocínio Clínico" open onToggle={() => {}}>
+            <Section number={n + 6} title="Raciocínio Clínico" open onToggle={() => {}}>
               <div className="grid sm:grid-cols-2 gap-3">
                 <Field label="Principal alteração"><TextArea rows={2} value={record.raciocinio.alteracao} onChange={(v) => set("raciocinio.alteracao", v)} /></Field>
                 <Field label="Evidências"><TextArea rows={2} value={record.raciocinio.evidencias} onChange={(v) => set("raciocinio.evidencias", v)} /></Field>
                 <Field label="Objetivo alcançado"><TextArea rows={2} value={record.raciocinio.objetivoAlcancado} onChange={(v) => set("raciocinio.objetivoAlcancado", v)} /></Field>
                 <Field label="Conduta seguinte"><TextArea rows={2} value={record.raciocinio.conduta} onChange={(v) => set("raciocinio.conduta", v)} /></Field>
               </div>
+            </Section>
+            <Section number={n + 7} title="Estudo de Caso (desta sessão)" open onToggle={() => {}}>
+              <label className="flex items-center gap-2 cursor-pointer select-none" style={{ fontSize: 14, color: T.ink }}>
+                <input type="checkbox" checked={!!record.estudoDeCasoSessao?.discutido} onChange={(e) => set("estudoDeCasoSessao.discutido", e.target.checked)} style={{ accentColor: T.accent, width: 16, height: 16 }} />
+                Este atendimento foi discutido em estudo de caso com a supervisão
+              </label>
+              <Field label="Resumo da discussão (opcional)">
+                <TextArea rows={2} value={record.estudoDeCasoSessao?.resumo || ""} onChange={(v) => set("estudoDeCasoSessao.resumo", v)} />
+              </Field>
+              <div style={{ fontSize: 11, color: T.inkFaint }}>Para um histórico de discussões mais longo e organizado por data, use o "Estudo de Caso" na ficha do paciente.</div>
+            </Section>
+            <Section number={n + 8} title="Validação da Supervisão" open onToggle={() => {}}>
+              <div className="flex items-center gap-2 mb-1">
+                <span style={{
+                  fontSize: 11.5, fontWeight: 600, padding: "2px 8px", borderRadius: 999,
+                  background: record.validacaoSupervisao?.status === "validado" ? T.accentSoft : T.warnSoft,
+                  color: record.validacaoSupervisao?.status === "validado" ? T.accentDeep : T.warn,
+                }}>
+                  {record.validacaoSupervisao?.status === "validado" ? "✓ Validado" : "Pendente de validação"}
+                </span>
+                {record.validacaoSupervisao?.status === "validado" && (
+                  <span style={{ fontSize: 11.5, color: T.inkFaint }}>
+                    por {record.validacaoSupervisao.supervisorNome}{record.validacaoSupervisao.dataValidacao ? " em " + record.validacaoSupervisao.dataValidacao : ""}
+                  </span>
+                )}
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="Supervisor(a) responsável"><TextInput value={record.validacaoSupervisao?.supervisorNome || ""} onChange={(v) => set("validacaoSupervisao.supervisorNome", v)} /></Field>
+                <Field label="CRFa do(a) Supervisor(a)"><TextInput value={record.validacaoSupervisao?.crfaSupervisor || ""} onChange={(v) => set("validacaoSupervisao.crfaSupervisor", v)} /></Field>
+              </div>
+              <Field label="Comentário do(a) supervisor(a) (opcional)">
+                <TextArea rows={2} value={record.validacaoSupervisao?.comentario || ""} onChange={(v) => set("validacaoSupervisao.comentario", v)} />
+              </Field>
+              {souSupervisor ? (
+                record.validacaoSupervisao?.status === "validado" ? (
+                  <button onClick={desfazerValidacao} className="self-start" style={{ fontSize: 12.5, color: T.warn }}>Desfazer validação</button>
+                ) : (
+                  <button onClick={validar} className="flex items-center gap-1.5 self-start" style={{ fontSize: 13, color: "white", background: T.accent, borderRadius: 7, padding: "7px 14px", fontWeight: 500 }}>
+                    <Check size={14} /> Validar atendimento
+                  </button>
+                )
+              ) : (
+                <div style={{ fontSize: 11.5, color: T.inkFaint }}>Somente quem tem o papel "Supervisor(a)" ou "Administrador(a)" definido pelo administrador do sistema pode validar. Fale com um administrador se precisar desse acesso.</div>
+              )}
             </Section>
           </>
         );
@@ -1858,10 +2321,37 @@ function CaseStudyPanel({ patientName, notes, onAdd, onDelete }) {
 /* ---------------------------------------------------------------------
    Progress report (Relatório de Acompanhamento) — timeline across areas
 ------------------------------------------------------------------------ */
+function ProtocoloEvolucaoChart({ pontos }) {
+  const validos = pontos.filter((p) => p.total != null);
+  if (validos.length < 2) return null;
+  const W = 420, H = 140, padL = 40, padR = 14, padT = 12, padB = 24;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const yMax = Math.max(...validos.map((p) => p.max || p.total), 1);
+  const xFor = (i) => padL + (i / (validos.length - 1)) * plotW;
+  const yFor = (v) => padT + plotH - (v / yMax) * plotH;
+  const pathPts = validos.map((p, i) => [xFor(i), yFor(p.total)]);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ maxWidth: 420, background: T.surface, border: "1px solid " + T.lineSoft, borderRadius: 6 }}>
+      {[0, 0.5, 1].map((f) => (
+        <g key={f}>
+          <line x1={padL} x2={W - padR} y1={padT + plotH * (1 - f)} y2={padT + plotH * (1 - f)} stroke={T.lineSoft} strokeWidth="0.6" />
+          <text x={padL - 4} y={padT + plotH * (1 - f) + 3} fontSize="8" textAnchor="end" fill={T.inkFaint}>{Math.round(yMax * f)}</text>
+        </g>
+      ))}
+      <polyline points={pathPts.map((p) => p.join(",")).join(" ")} fill="none" stroke={T.accent} strokeWidth="1.6" />
+      {pathPts.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3" fill={T.accent} />)}
+      {validos.map((p, i) => <text key={i} x={xFor(i)} y={H - padB + 12} fontSize="7.5" textAnchor="middle" fill={T.inkFaint}>{p.data || "—"}</text>)}
+    </svg>
+  );
+}
 function ReportView({ patientName, sessions }) {
   const byArea = _.groupBy(sessions, "area");
   const sorted = [...sessions].sort((a, b) => (a.identificacao.data || "").localeCompare(b.identificacao.data || ""));
   const latest = sorted[sorted.length - 1];
+  const protocolosPorNome = _.groupBy(
+    sorted.filter((r) => r.clinico?.protocoloAplicado?.nome),
+    (r) => r.clinico.protocoloAplicado.nome
+  );
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-5 pb-10">
       <div>
@@ -1876,6 +2366,27 @@ function ReportView({ patientName, sessions }) {
         <ReadRow label="Áreas acompanhadas" value={Object.keys(byArea).map((a) => AREAS[a]?.label).join(" · ")} />
         <ReadRow label="Período" value={sorted[0]?.identificacao.data ? `${sorted[0].identificacao.data} — ${latest.identificacao.data}` : ""} />
       </div>
+      {Object.keys(protocolosPorNome).length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 14, color: T.ink }}>Evolução dos Protocolos Aplicados</div>
+          {Object.entries(protocolosPorNome).map(([nome, regs]) => {
+            const pontos = regs.map((r) => {
+              const t = computeProtocoloTotais(r.clinico.protocoloAplicado.itens);
+              return { data: r.clinico.protocoloAplicado.dataAplicacao || r.identificacao.data, total: t?.total, max: t?.max };
+            });
+            return (
+              <div key={nome} className="p-3 flex flex-col gap-2" style={{ background: T.surface, border: "1px solid " + T.lineSoft, borderRadius: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.accentDeep }}>{nome}</div>
+                <div style={{ fontSize: 11.5, color: T.inkFaint }}>{regs.length} aplicação(ões){pontos.length > 1 ? " — evolução do escore total ao longo do tempo:" : ""}</div>
+                <ProtocoloEvolucaoChart pontos={pontos} />
+                {pontos.length < 2 && pontos[0]?.total != null && (
+                  <ReadRow label="Escore" value={`${pontos[0].total}${pontos[0].max ? ` / ${pontos[0].max}` : ""}`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
       <div className="flex flex-col gap-3">
         {sorted.map((r) => (
           <div key={r.id} className="p-4 flex flex-col gap-2" style={{ background: T.surface, border: "1px solid " + T.lineSoft, borderRadius: 8 }}>
@@ -1896,21 +2407,34 @@ function ReportView({ patientName, sessions }) {
 /* ---------------------------------------------------------------------
    App shell
 ------------------------------------------------------------------------ */
+const blankPatient = (nome, slug, instituicao = "") => ({
+  id: slug, nome, instituicao, nascimento: "", idade: "", responsavel: "", hipotese: "", cid: "", tempoAcompanhamento: "",
+  anamnese: blankAnamneseGeral(), anamneseCompleta: false, criadoEm: null, atualizadoEm: null,
+});
+const blankPerfil = () => ({ nome: "", instituicao: "", crfa: "", papel: "estagiario" });
+
 export default function App() {
   const [records, setRecords] = useState({});
-  const [caseStudies, setCaseStudies] = useState({}); // slug -> {name, notes:[]}
+  const [patients, setPatients] = useState({}); // slug -> paciente
+  const [caseStudies, setCaseStudies] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
-  const [mode, setMode] = useState("empty"); // empty|choose-area|new|edit|view|casestudy|report
+  const [selectedPatientSlug, setSelectedPatientSlug] = useState(null);
+  const [mode, setMode] = useState("empty"); // empty|new-patient|patient|anamnese-edit|patient-edit|choose-area|new|edit|view|casestudy|report
   const [draft, setDraft] = useState(null);
   const [draftArea, setDraftArea] = useState(null);
+  const [anamneseDraft, setAnamneseDraft] = useState(null);
+  const [patientEditDraft, setPatientEditDraft] = useState(null);
+  const [newPatientName, setNewPatientName] = useState("");
   const [query, setQuery] = useState("");
-  const [expandedPatients, setExpandedPatients] = useState({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [mobileListOpen, setMobileListOpen] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [activePatient, setActivePatient] = useState(null);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [laudoGenerating, setLaudoGenerating] = useState(false);
+  const [perfil, setPerfil] = useState(null); // null = ainda não carregado
+  const [perfilDraft, setPerfilDraft] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -1922,6 +2446,7 @@ export default function App() {
           try { const r = await window.storage.get("atendimento:" + id); if (r) loaded[id] = JSON.parse(r.value); } catch (e) {}
         }
         setRecords(loaded);
+
         let csIds = [];
         try { const idx = await window.storage.get("estudo-index"); csIds = idx ? JSON.parse(idx.value) : []; } catch (e) { csIds = []; }
         const csLoaded = {};
@@ -1929,9 +2454,28 @@ export default function App() {
           try { const r = await window.storage.get("estudo:" + slug); if (r) csLoaded[slug] = JSON.parse(r.value); } catch (e) {}
         }
         setCaseStudies(csLoaded);
+
+        let pSlugs = [];
+        try { const idx = await window.storage.get("patient-index"); pSlugs = idx ? JSON.parse(idx.value) : []; } catch (e) { pSlugs = []; }
+        const pLoaded = {};
+        for (const slug of pSlugs) {
+          try { const r = await window.storage.get("paciente:" + slug); if (r) pLoaded[slug] = JSON.parse(r.value); } catch (e) {}
+        }
+        setPatients(pLoaded);
+
+        try {
+          const meu = await window.storage.get("meu-perfil", false);
+          setPerfil(meu ? JSON.parse(meu.value) : blankPerfil());
+        } catch (e) { setPerfil(blankPerfil()); }
       } finally { setLoading(false); }
     })();
   }, []);
+
+  const savePerfil = async (novoPerfil) => {
+    try { await window.storage.set("meu-perfil", JSON.stringify(novoPerfil), false); } catch (e) {}
+    setPerfil(novoPerfil);
+    setPerfilDraft(null);
+  };
 
   const patientGroups = useMemo(() => {
     const groups = {};
@@ -1944,50 +2488,138 @@ export default function App() {
     return groups;
   }, [records]);
 
-  const patientNames = useMemo(
-    () => Object.keys(patientGroups).filter((n) => n !== "Sem nome").sort((a, b) => a.localeCompare(b, "pt-BR")),
-    [patientGroups]
-  );
-  const filteredNames = useMemo(() => {
-    const all = Object.keys(patientGroups).sort((a, b) => a.localeCompare(b, "pt-BR"));
-    if (!query.trim()) return all;
+  // Unified patient rows: formal Paciente entities + legacy names inferred from atendimentos.
+  const patientRows = useMemo(() => {
+    const slugs = new Set(Object.keys(patients));
+    Object.keys(patientGroups).forEach((n) => { if (n !== "Sem nome") slugs.add(slugify(n)); });
+    const minhaInstituicao = (perfil?.instituicao || "").trim().toLowerCase();
+    const rows = Array.from(slugs)
+      .map((slug) => {
+        const p = patients[slug];
+        const legacyName = Object.keys(patientGroups).find((n) => slugify(n) === slug);
+        const nome = p?.nome || legacyName || slug;
+        const sessions = patientGroups[nome] || [];
+        return { slug, nome, instituicao: p?.instituicao || "", sessionsCount: sessions.length, lastDate: sessions[0]?.identificacao.data || "" };
+      })
+      .filter((r) => !minhaInstituicao || !r.instituicao || r.instituicao.trim().toLowerCase() === minhaInstituicao);
+    rows.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    return rows;
+  }, [patients, patientGroups, perfil]);
+
+  const filteredPatientRows = useMemo(() => {
+    if (!query.trim()) return patientRows;
     const q = query.trim().toLowerCase();
-    return all.filter((n) => n.toLowerCase().includes(q));
-  }, [patientGroups, query]);
+    return patientRows.filter((r) => r.nome.toLowerCase().includes(q));
+  }, [patientRows, query]);
 
   const persistIndex = async (ids) => { try { await window.storage.set("record-index", JSON.stringify(ids)); } catch (e) {} };
   const persistCaseIndex = async (slugs) => { try { await window.storage.set("estudo-index", JSON.stringify(slugs)); } catch (e) {} };
+  const persistPatientIndex = async (slugs) => { try { await window.storage.set("patient-index", JSON.stringify(slugs)); } catch (e) {} };
+
+  const currentPatient = selectedPatientSlug ? patients[selectedPatientSlug] : null;
+  const currentPatientSessions = currentPatient ? (patientGroups[currentPatient.nome] || []) : [];
+
+  const savePatientData = async (slug, updater) => {
+    const base = patients[slug] || blankPatient(slug, slug);
+    const updated = typeof updater === "function" ? updater(base) : updater;
+    const now = new Date().toISOString();
+    const withMeta = { ...updated, criadoEm: updated.criadoEm || now, atualizadoEm: now };
+    try {
+      await window.storage.set("paciente:" + slug, JSON.stringify(withMeta));
+      const slugs = Array.from(new Set([...Object.keys(patients), slug]));
+      await persistPatientIndex(slugs);
+      setPatients((prev) => ({ ...prev, [slug]: withMeta }));
+    } catch (e) {}
+  };
+
+  const createPatient = async () => {
+    const nome = newPatientName.trim();
+    if (!nome) return;
+    const slug = slugify(nome);
+    if (!patients[slug]) await savePatientData(slug, blankPatient(nome, slug, perfil?.instituicao || ""));
+    setNewPatientName("");
+    setSelectedPatientSlug(slug);
+    setMode("patient");
+    setMobileListOpen(false);
+  };
+
+  const openPatient = (slug) => {
+    if (!patients[slug]) {
+      const legacyName = Object.keys(patientGroups).find((n) => slugify(n) === slug);
+      if (legacyName) {
+        const latest = (patientGroups[legacyName] || [])[0];
+        const seed = blankPatient(legacyName, slug);
+        if (latest) {
+          seed.nascimento = latest.paciente.nascimento || "";
+          seed.idade = latest.paciente.idade || "";
+          seed.responsavel = latest.paciente.responsavel || "";
+          seed.hipotese = latest.paciente.hipotese || "";
+          seed.cid = latest.paciente.cid || "";
+          seed.tempoAcompanhamento = latest.paciente.tempoAcompanhamento || "";
+        }
+        setPatients((prev) => ({ ...prev, [slug]: seed }));
+      }
+    }
+    setSelectedPatientSlug(slug);
+    setSelectedId(null);
+    setMode("patient");
+    setMobileListOpen(false);
+  };
+
+  const startAnamnese = () => { setAnamneseDraft(_.cloneDeep(currentPatient.anamnese)); setMode("anamnese-edit"); };
+  const saveAnamnese = async () => {
+    await savePatientData(selectedPatientSlug, (prev) => ({ ...prev, anamnese: anamneseDraft, anamneseCompleta: true }));
+    setAnamneseDraft(null);
+    setMode("patient");
+  };
+
+  const startEditPatientInfo = () => setPatientEditDraft({ ..._.pick(currentPatient, ["nome", "instituicao", "nascimento", "idade", "responsavel", "hipotese", "cid", "tempoAcompanhamento"]) });
+  const savePatientInfo = async () => {
+    await savePatientData(selectedPatientSlug, (prev) => ({ ...prev, ...patientEditDraft }));
+    setPatientEditDraft(null);
+  };
 
   const startChooseArea = () => { setMode("choose-area"); setMobileListOpen(false); };
   const startNewWithArea = (areaId) => {
+    if (!currentPatient) return;
+    const blank = blankRecord(areaId);
+    blank.pacienteSlug = selectedPatientSlug;
+    blank.paciente = {
+      nome: currentPatient.nome, nascimento: currentPatient.nascimento, idade: currentPatient.idade,
+      responsavel: currentPatient.responsavel, hipotese: currentPatient.hipotese, cid: currentPatient.cid,
+      tempoAcompanhamento: currentPatient.tempoAcompanhamento,
+    };
+    if (perfil?.instituicao) blank.identificacao.instituicao = perfil.instituicao;
+    if (perfil?.nome) blank.identificacao.supervisor = perfil.nome;
+    if (perfil?.crfa) blank.identificacao.crfa = perfil.crfa;
+    const sameAreaCount = currentPatientSessions.filter((r) => r.area === areaId).length;
+    blank.identificacao.sessaoNum = String(sameAreaCount + 1);
     setDraftArea(areaId);
-    setDraft(blankRecord(areaId));
+    setDraft(blank);
     setMode("new");
     setSelectedId(null);
   };
 
-  const onSelectExisting = (name) => {
-    const list = patientGroups[name];
-    if (!list || !list.length) return;
-    const sameArea = list.filter((r) => r.area === draftArea);
-    const latest = (sameArea[0] || list[0]);
-    const maxSession = Math.max(0, ...sameArea.map((r) => parseInt(r.identificacao.sessaoNum, 10) || 0));
-    setDraft((prev) => _.merge(_.cloneDeep(prev), {
-      paciente: latest.paciente,
-      identificacao: {
-        instituicao: latest.identificacao.instituicao,
-        estagiario: latest.identificacao.estagiario,
-        matricula: latest.identificacao.matricula,
-        supervisor: latest.identificacao.supervisor,
-        crfa: latest.identificacao.crfa,
-        sessaoNum: String(maxSession + 1),
-      },
-    }));
+  const openView = (id) => {
+    setSelectedId(id);
+    const rec = records[id];
+    if (rec) setSelectedPatientSlug(slugify(rec.paciente.nome));
+    setMode("view");
+    setMobileListOpen(false);
   };
-
-  const openView = (id) => { setSelectedId(id); setMode("view"); setMobileListOpen(false); };
-  const startEdit = (id) => { setDraft(_.cloneDeep(records[id])); setDraftArea(records[id].area); setSelectedId(id); setMode("edit"); };
-  const cancelEdit = () => { setDraft(null); setDraftArea(null); if (selectedId) setMode("view"); else setMode("empty"); };
+  const startEdit = (id) => {
+    const base = blankRecord(records[id].area);
+    setDraft(_.merge({}, base, _.cloneDeep(records[id])));
+    setDraftArea(records[id].area);
+    setSelectedId(id);
+    setMode("edit");
+  };
+  const cancelEdit = () => {
+    setDraft(null); setDraftArea(null);
+    if (selectedId) setMode("view");
+    else if (selectedPatientSlug) setMode("patient");
+    else setMode("empty");
+  };
 
   const save = async () => {
     if (!draft.paciente.nome.trim()) { setSaveError(true); return; }
@@ -2010,13 +2642,13 @@ export default function App() {
       const remaining = Object.keys(records).filter((k) => k !== id);
       await persistIndex(remaining);
       const next = { ...records }; delete next[id]; setRecords(next);
-      if (selectedId === id) { setSelectedId(null); setMode("empty"); }
+      if (selectedId === id) { setSelectedId(null); setMode(selectedPatientSlug ? "patient" : "empty"); }
     } catch (e) {}
     setConfirmDelete(null);
   };
 
-  const openCaseStudy = (name) => { setActivePatient(name); setMode("casestudy"); setMobileListOpen(false); };
-  const openReport = (name) => { setActivePatient(name); setMode("report"); setMobileListOpen(false); };
+  const openCaseStudy = () => { setMode("casestudy"); setMobileListOpen(false); };
+  const openReport = () => { setMode("report"); setMobileListOpen(false); };
 
   const addCaseNote = async (name, note) => {
     const slug = slugify(name);
@@ -2038,38 +2670,25 @@ export default function App() {
   };
 
   const doPrint = () => window.print();
-  const [pdfGenerating, setPdfGenerating] = useState(false);
   const handleDownloadPDF = async (record) => {
     setPdfGenerating(true);
-    try {
-      await generateRecordPDF(record);
-    } catch (e) {
-      window.print();
-    } finally {
-      setPdfGenerating(false);
-    }
+    try { await generateRecordPDF(record); } catch (e) { window.print(); } finally { setPdfGenerating(false); }
   };
-  const [laudoGenerating, setLaudoGenerating] = useState(false);
   const handleDownloadLaudo = async (record) => {
     setLaudoGenerating(true);
-    try {
-      await generateLaudoPDF(record);
-    } catch (e) {
-      window.alert("Não foi possível gerar o laudo em PDF agora. Tente novamente em instantes.");
-    } finally {
-      setLaudoGenerating(false);
-    }
+    try { await generateLaudoPDF(record); } catch (e) { window.alert("Não foi possível gerar o laudo em PDF agora. Tente novamente em instantes."); } finally { setLaudoGenerating(false); }
   };
   const current = selectedId ? records[selectedId] : null;
 
   const exportSpreadsheet = (groupBy) => {
     const rows = Object.values(records).map((r) => ({
+      "Fonoaudiólogo(a) responsável": r.identificacao.supervisor,
       "Estagiário(a)": r.identificacao.estagiario,
       Paciente: r.paciente.nome,
       "Área": AREAS[r.area]?.label || r.area,
       Data: r.identificacao.data,
       "Sessão nº": r.identificacao.sessaoNum,
-      "Supervisor(a)": r.identificacao.supervisor,
+      "Protocolo aplicado": r.clinico?.protocoloAplicado?.nome || "",
       "Hipótese diagnóstica": r.paciente.hipotese,
       "CID": r.paciente.cid,
       "Procedimentos realizados": r.procedimentos,
@@ -2077,15 +2696,65 @@ export default function App() {
       "Orientações à família": r.orientacoes,
       "Plano para próxima sessão": r.plano,
     }));
-    const sortKey = groupBy === "estagiario" ? "Estagiário(a)" : "Paciente";
+    const sortKey = groupBy === "estagiario" ? "Fonoaudiólogo(a) responsável" : "Paciente";
     rows.sort((a, b) => (a[sortKey] || "").localeCompare(b[sortKey] || "", "pt-BR") || (a.Data || "").localeCompare(b.Data || ""));
     if (rows.length === 0) return;
     const ws = XLSX.utils.json_to_sheet(rows);
     ws["!cols"] = Object.keys(rows[0]).map((k) => ({ wch: Math.min(40, Math.max(12, k.length + 4)) }));
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, groupBy === "estagiario" ? "Por estagiário" : "Por paciente");
-    XLSX.writeFile(wb, groupBy === "estagiario" ? "atendimentos_por_estagiario.xlsx" : "atendimentos_por_paciente.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, groupBy === "estagiario" ? "Por profissional" : "Por paciente");
+    XLSX.writeFile(wb, groupBy === "estagiario" ? "atendimentos_por_profissional.xlsx" : "atendimentos_por_paciente.xlsx");
   };
+
+  if (perfil === null) {
+    return <div style={{ padding: 40, fontFamily: "'IBM Plex Sans', sans-serif", color: T.inkSoft }}>Carregando…</div>;
+  }
+
+  if (!perfil.instituicao || perfilDraft) {
+    const draft = perfilDraft || blankPerfil();
+    return (
+      <div style={{ background: T.paper, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'IBM Plex Sans', sans-serif", padding: 16 }}>
+        <div style={{ width: "100%", maxWidth: 400, background: T.surface, border: "1px solid " + T.line, borderRadius: 12, padding: 28, display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 600, color: T.ink }}>
+              {perfil.instituicao ? "Editar perfil profissional" : "Configure seu perfil"}
+            </div>
+            <div style={{ fontSize: 12.5, color: T.inkSoft }}>
+              A instituição escolhida define quais pacientes aparecem para você — pacientes da mesma instituição ficam visíveis para todos os profissionais que os atendem.
+            </div>
+          </div>
+          <Field label="Seu nome"><TextInput value={draft.nome} onChange={(v) => setPerfilDraft({ ...draft, nome: v })} placeholder="Nome completo" /></Field>
+          {typeof window !== "undefined" && window.authProfile ? (
+            <Field label="Seu papel na equipe">
+              <div style={{ ...inputBase, background: T.surfaceSoft, color: T.inkSoft }}>
+                {{ estagiario: "Estagiário(a)", fonoaudiologo: "Fonoaudiólogo(a)", supervisor: "Supervisor(a)", admin: "Administrador(a)" }[window.authProfile.papel] || "Estagiário(a)"}
+              </div>
+              <span style={{ fontSize: 10.5, color: T.inkFaint }}>Definido por um administrador do sistema — fale com ele(a) para alterar.</span>
+            </Field>
+          ) : (
+            <Field label="Seu papel na equipe">
+              <select value={draft.papel || "estagiario"} onChange={(e) => setPerfilDraft({ ...draft, papel: e.target.value })} style={inputBase}>
+                <option value="estagiario">Estagiário(a)</option>
+                <option value="fonoaudiologo">Fonoaudiólogo(a)</option>
+                <option value="supervisor">Supervisor(a)</option>
+              </select>
+            </Field>
+          )}
+          <Field label="Instituição"><TextInput value={draft.instituicao} onChange={(v) => setPerfilDraft({ ...draft, instituicao: v })} placeholder="Ex.: Centro Universitário Nobre – UNIFAN" /></Field>
+          <Field label="CRFa (se houver)"><TextInput value={draft.crfa} onChange={(v) => setPerfilDraft({ ...draft, crfa: v })} /></Field>
+          <div className="flex justify-end gap-3">
+            {perfil.instituicao && <button onClick={() => setPerfilDraft(null)} style={{ fontSize: 13.5, color: T.inkSoft }}>Cancelar</button>}
+            <button
+              onClick={() => draft.instituicao.trim() && savePerfil(draft)}
+              style={{ background: T.accent, color: "white", border: "none", borderRadius: 8, padding: "9px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+            >
+              Salvar e continuar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: T.paper, minHeight: "100%", fontFamily: "'IBM Plex Sans', sans-serif" }}>
@@ -2102,7 +2771,7 @@ export default function App() {
       `}</style>
 
       <div id="app-shell" className="flex flex-col lg:flex-row" style={{ minHeight: "100%" }}>
-        {/* Sidebar */}
+        {/* Sidebar — lista de pacientes */}
         <div className={"no-print flex-col " + (mobileListOpen ? "flex" : "hidden lg:flex")}
           style={{ width: "100%", maxWidth: 320, minWidth: 280, borderRight: "1px solid " + T.line, background: T.surface }}>
           <div className="px-4 pt-5 pb-3" style={{ borderBottom: "1px solid " + T.lineSoft }}>
@@ -2112,12 +2781,16 @@ export default function App() {
               </div>
               <div>
                 <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15.5, fontWeight: 600, color: T.ink, lineHeight: 1.1 }}>Protocolo de Atendimento</div>
-                <div style={{ fontSize: 11.5, color: T.inkSoft }}>Fonoaudiologia · todas as áreas</div>
+                <div style={{ fontSize: 11.5, color: T.inkSoft }}>Fonoaudiologia · ficha do paciente</div>
               </div>
             </div>
-            <button onClick={startChooseArea} className="w-full mt-4 flex items-center justify-center gap-2"
+            <div className="flex items-center justify-between mt-3" style={{ fontSize: 11.5, color: T.inkSoft }}>
+              <span>Instituição: <strong style={{ color: T.ink }}>{perfil.instituicao}</strong></span>
+              <button onClick={() => setPerfilDraft({ ...perfil })} style={{ color: T.accent, fontWeight: 500 }}>trocar</button>
+            </div>
+            <button onClick={() => setMode("new-patient")} className="w-full mt-3 flex items-center justify-center gap-2"
               style={{ background: T.accent, color: "white", borderRadius: 8, padding: "9px 0", fontSize: 14, fontWeight: 500 }}>
-              <Plus size={16} /> Novo atendimento
+              <Plus size={16} /> Novo paciente
             </button>
           </div>
 
@@ -2132,8 +2805,8 @@ export default function App() {
                 <button onClick={() => exportSpreadsheet("estagiario")}
                   className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5"
                   style={{ background: T.surfaceSoft, border: "1px solid " + T.lineSoft, borderRadius: 7, fontSize: 11.5, color: T.accentDeep, fontWeight: 500 }}
-                  title="Baixar planilha .xlsx com todos os atendimentos agrupados por estagiário">
-                  <FileSpreadsheet size={13} /> Por estagiário
+                  title="Baixar planilha .xlsx com todos os atendimentos agrupados por profissional">
+                  <FileSpreadsheet size={13} /> Por profissional
                 </button>
                 <button onClick={() => exportSpreadsheet("paciente")}
                   className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5"
@@ -2148,48 +2821,22 @@ export default function App() {
           <div className="flex-1 overflow-y-auto px-2 pb-6">
             {loading ? (
               <div className="px-3 py-6 text-center" style={{ color: T.inkFaint, fontSize: 13 }}>Carregando…</div>
-            ) : filteredNames.length === 0 ? (
+            ) : filteredPatientRows.length === 0 ? (
               <div className="px-3 py-6 text-center" style={{ color: T.inkFaint, fontSize: 13 }}>
-                {Object.keys(records).length === 0 ? "Nenhum atendimento registrado ainda." : "Nenhum paciente encontrado."}
+                {patientRows.length === 0 ? "Nenhum paciente cadastrado ainda." : "Nenhum paciente encontrado."}
               </div>
             ) : (
-              filteredNames.map((name) => {
-                const list = patientGroups[name];
-                const isOpen = !!expandedPatients[name] || filteredNames.length <= 3;
-                return (
-                  <div key={name} className="mb-1">
-                    <button className="w-full flex items-center gap-2 px-3 py-2 text-left" style={{ borderRadius: 7 }}
-                      onClick={() => setExpandedPatients((s) => ({ ...s, [name]: !isOpen }))}>
-                      {isOpen ? <ChevronDown size={14} color={T.inkFaint} /> : <ChevronRight size={14} color={T.inkFaint} />}
-                      <User size={14} color={T.inkFaint} />
-                      <span style={{ fontSize: 13.5, color: T.ink, fontWeight: 500, flex: 1 }}>{name}</span>
-                      <span style={{ fontSize: 11, color: T.inkFaint }}>{list.length}</span>
-                    </button>
-                    {isOpen && (
-                      <div className="flex flex-col gap-0.5 ml-6 mb-2">
-                        <div className="flex gap-3 px-3 py-1">
-                          <button onClick={() => openCaseStudy(name)} className="flex items-center gap-1" style={{ fontSize: 11.5, color: T.accent }}>
-                            <BookOpen size={12} /> Estudo de caso
-                          </button>
-                          <button onClick={() => openReport(name)} className="flex items-center gap-1" style={{ fontSize: 11.5, color: T.accent }}>
-                            <FileBarChart size={12} /> Relatório
-                          </button>
-                        </div>
-                        {list.map((r) => (
-                          <button key={r.id} onClick={() => openView(r.id)} className="flex items-center gap-2 px-3 py-1.5 text-left"
-                            style={{ borderRadius: 6, background: selectedId === r.id ? T.accentSoft : "transparent" }}>
-                            <Calendar size={12} color={T.inkFaint} />
-                            <span style={{ fontSize: 12.5, color: T.inkSoft }}>
-                              {r.identificacao.data || "sem data"}{r.identificacao.sessaoNum ? " · sessão " + r.identificacao.sessaoNum : ""}
-                            </span>
-                            <span style={{ fontSize: 11, color: T.inkFaint }}>· {SHORT_LABELS[r.area] || AREAS[r.area]?.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+              filteredPatientRows.map((row) => (
+                <button key={row.slug} onClick={() => openPatient(row.slug)}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-left mb-0.5"
+                  style={{ borderRadius: 7, background: selectedPatientSlug === row.slug ? T.accentSoft : "transparent" }}>
+                  <User size={14} color={T.inkFaint} />
+                  <div className="flex-1" style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, color: T.ink, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{row.nome}</div>
+                    <div style={{ fontSize: 11, color: T.inkFaint }}>{row.sessionsCount} atendimento(s){row.lastDate ? " · último em " + row.lastDate : ""}</div>
                   </div>
-                );
-              })
+                </button>
+              ))
             )}
           </div>
         </div>
@@ -2200,6 +2847,11 @@ export default function App() {
             <button className="lg:hidden flex items-center gap-1" onClick={() => setMobileListOpen((s) => !s)} style={{ fontSize: 13, color: T.accent }}>
               <ArrowLeft size={15} /> Lista
             </button>
+            {mode !== "patient" && selectedPatientSlug && currentPatient && (
+              <button onClick={() => setMode("patient")} className="flex items-center gap-1" style={{ fontSize: 13, color: T.accent }}>
+                <ArrowLeft size={15} /> Ficha de {currentPatient.nome}
+              </button>
+            )}
             <div style={{ flex: 1 }} />
             {mode === "view" && current && (
               <>
@@ -2222,7 +2874,15 @@ export default function App() {
                 </button>
               </>
             )}
-            {mode === "report" && current === null && activePatient && (
+            {mode === "anamnese-edit" && (
+              <>
+                <button onClick={() => { setAnamneseDraft(null); setMode("patient"); }} className="flex items-center gap-1.5" style={{ fontSize: 13.5, color: T.inkSoft }}><X size={15} /> Cancelar</button>
+                <button onClick={saveAnamnese} className="flex items-center gap-1.5" style={{ fontSize: 13.5, color: "white", background: T.accent, borderRadius: 7, padding: "7px 14px", fontWeight: 500 }}>
+                  <Save size={15} /> Salvar anamnese
+                </button>
+              </>
+            )}
+            {mode === "report" && (
               <button onClick={doPrint} className="flex items-center gap-1.5" style={{ fontSize: 13.5, color: T.ink }}><Printer size={15} /> Imprimir</button>
             )}
           </div>
@@ -2231,23 +2891,160 @@ export default function App() {
             {mode === "empty" && (
               <div className="h-full flex flex-col items-center justify-center text-center gap-3 py-24">
                 <ClipboardList size={34} color={T.inkFaint} />
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, color: T.ink }}>Selecione um atendimento ou registre um novo</div>
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, color: T.ink }}>Selecione um paciente ou cadastre um novo</div>
                 <div style={{ fontSize: 13.5, color: T.inkSoft, maxWidth: 380 }}>
-                  Cada área de atuação tem seu próprio protocolo. Os registros ficam organizados por paciente,
-                  com estudo de caso e relatório de acompanhamento reunindo todas as sessões.
+                  Cada paciente tem uma ficha própria: anamnese única, histórico de todos os atendimentos
+                  (de qualquer área) e dos protocolos aplicados.
                 </div>
-                <button onClick={startChooseArea} className="mt-2 flex items-center gap-2"
+                <button onClick={() => setMode("new-patient")} className="mt-2 flex items-center gap-2"
                   style={{ background: T.accent, color: "white", borderRadius: 8, padding: "9px 16px", fontSize: 14, fontWeight: 500 }}>
-                  <Plus size={16} /> Novo atendimento
+                  <Plus size={16} /> Novo paciente
                 </button>
               </div>
             )}
 
-            {mode === "choose-area" && (
+            {mode === "new-patient" && (
+              <div className="max-w-md mx-auto flex flex-col gap-4 py-10">
+                <div>
+                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, color: T.ink }}>Novo paciente</div>
+                  <div style={{ fontSize: 13.5, color: T.inkSoft }}>Depois de criar, você preenche a anamnese e escolhe a área do primeiro atendimento.</div>
+                </div>
+                <Field label="Nome do paciente">
+                  <TextInput value={newPatientName} onChange={setNewPatientName} placeholder="Nome completo" />
+                </Field>
+                <div style={{ fontSize: 12, color: T.inkFaint }}>Será cadastrado em: <strong style={{ color: T.inkSoft }}>{perfil.instituicao}</strong></div>
+                <div className="flex justify-end gap-3">
+                  <button onClick={() => { setMode("empty"); setNewPatientName(""); }} style={{ fontSize: 13.5, color: T.inkSoft }}>Cancelar</button>
+                  <button onClick={createPatient} className="flex items-center gap-1.5" style={{ fontSize: 14, color: "white", background: T.accent, borderRadius: 8, padding: "9px 18px", fontWeight: 500 }}>
+                    <Plus size={15} /> Criar paciente
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode === "patient" && currentPatient && (
+              <div className="max-w-3xl mx-auto flex flex-col gap-5 pb-10">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 22, fontWeight: 600, color: T.ink }}>{currentPatient.nome}</div>
+                    <div style={{ fontSize: 13, color: T.inkSoft }}>
+                      {currentPatient.nascimento ? "Nascimento: " + currentPatient.nascimento : "Nascimento não informado"}
+                      {currentPatient.idade ? " · " + currentPatient.idade : ""}
+                    </div>
+                  </div>
+                  <button onClick={startEditPatientInfo} className="flex items-center gap-1" style={{ fontSize: 12.5, color: T.accent }}>
+                    <Pencil size={13} /> Editar dados
+                  </button>
+                </div>
+
+                {patientEditDraft && (
+                  <div className="p-4 flex flex-col gap-3" style={{ background: T.surface, border: "1px solid " + T.line, borderRadius: 10 }}>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Field label="Nome" span={2}><TextInput value={patientEditDraft.nome} onChange={(v) => setPatientEditDraft((p) => ({ ...p, nome: v }))} /></Field>
+                      <Field label="Instituição" span={2}><TextInput value={patientEditDraft.instituicao} onChange={(v) => setPatientEditDraft((p) => ({ ...p, instituicao: v }))} /></Field>
+                      <Field label="Nascimento"><TextInput type="date" value={patientEditDraft.nascimento} onChange={(v) => setPatientEditDraft((p) => ({ ...p, nascimento: v }))} /></Field>
+                      <Field label="Idade"><TextInput value={patientEditDraft.idade} onChange={(v) => setPatientEditDraft((p) => ({ ...p, idade: v }))} /></Field>
+                      <Field label="Responsável" span={2}><TextInput value={patientEditDraft.responsavel} onChange={(v) => setPatientEditDraft((p) => ({ ...p, responsavel: v }))} /></Field>
+                      <Field label="Hipótese diagnóstica" span={2}><TextInput value={patientEditDraft.hipotese} onChange={(v) => setPatientEditDraft((p) => ({ ...p, hipotese: v }))} /></Field>
+                      <Field label="CID"><TextInput value={patientEditDraft.cid} onChange={(v) => setPatientEditDraft((p) => ({ ...p, cid: v }))} /></Field>
+                      <Field label="Tempo de acompanhamento"><TextInput value={patientEditDraft.tempoAcompanhamento} onChange={(v) => setPatientEditDraft((p) => ({ ...p, tempoAcompanhamento: v }))} /></Field>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <button onClick={() => setPatientEditDraft(null)} style={{ fontSize: 13, color: T.inkSoft }}>Cancelar</button>
+                      <button onClick={savePatientInfo} style={{ fontSize: 13, color: "white", background: T.accent, borderRadius: 7, padding: "6px 12px" }}>Salvar</button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-3 p-3" style={{ background: T.surfaceSoft, borderRadius: 10 }}>
+                  <button onClick={startAnamnese} className="flex items-center gap-1.5" style={{ fontSize: 13, color: T.accentDeep, fontWeight: 500 }}>
+                    <ClipboardList size={15} /> {currentPatient.anamneseCompleta ? "Ver / editar anamnese" : "Preencher anamnese"}
+                  </button>
+                  <button onClick={openCaseStudy} className="flex items-center gap-1.5" style={{ fontSize: 13, color: T.accent }}>
+                    <BookOpen size={15} /> Estudo de caso
+                  </button>
+                  <button onClick={openReport} className="flex items-center gap-1.5" style={{ fontSize: 13, color: T.accent }}>
+                    <FileBarChart size={15} /> Relatório de acompanhamento
+                  </button>
+                  {!currentPatient.anamneseCompleta && (
+                    <span className="flex items-center gap-1" style={{ fontSize: 12, color: T.warn }}>
+                      <AlertCircle size={13} /> Anamnese ainda não preenchida
+                    </span>
+                  )}
+                </div>
+
+                <button onClick={startChooseArea} className="flex items-center justify-center gap-2 py-3"
+                  style={{ background: T.accent, color: "white", borderRadius: 10, fontSize: 14.5, fontWeight: 500 }}>
+                  <Plus size={17} /> Novo atendimento
+                </button>
+
+                <div>
+                  <div style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 14, color: T.ink, marginBottom: 8 }}>
+                    Histórico de atendimentos ({currentPatientSessions.length})
+                  </div>
+                  {currentPatientSessions.length === 0 ? (
+                    <div style={{ fontSize: 13, color: T.inkFaint, textAlign: "center", padding: "20px 0" }}>Nenhum atendimento registrado ainda para este paciente.</div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {currentPatientSessions.map((r) => (
+                        <button key={r.id} onClick={() => openView(r.id)} className="flex items-center gap-3 p-3 text-left"
+                          style={{ background: T.surface, border: "1px solid " + T.lineSoft, borderRadius: 8 }}>
+                          <Calendar size={15} color={T.inkFaint} />
+                          <div className="flex-1" style={{ minWidth: 0 }}>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span style={{ fontSize: 13.5, color: T.ink, fontWeight: 500 }}>
+                                {SHORT_LABELS[r.area] || AREAS[r.area]?.label}
+                                {r.identificacao.sessaoNum ? " · sessão " + r.identificacao.sessaoNum : ""}
+                              </span>
+                              <span style={{
+                                fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 999,
+                                background: r.validacaoSupervisao?.status === "validado" ? T.accentSoft : T.warnSoft,
+                                color: r.validacaoSupervisao?.status === "validado" ? T.accentDeep : T.warn,
+                              }}>
+                                {r.validacaoSupervisao?.status === "validado" ? "✓ Validado" : "Pendente"}
+                              </span>
+                              {r.estudoDeCasoSessao?.discutido && (
+                                <span className="flex items-center gap-0.5" style={{ fontSize: 10, color: T.accent }} title="Discutido em estudo de caso">
+                                  <BookOpen size={11} />
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 11.5, color: T.inkFaint }}>
+                              {r.identificacao.data || "sem data"}
+                              {r.identificacao.supervisor ? " · Fono: " + r.identificacao.supervisor : ""}
+                              {r.identificacao.estagiario ? " · Estagiário(a): " + r.identificacao.estagiario : ""}
+                              {r.clinico?.protocoloAplicado?.nome ? " · Protocolo: " + r.clinico.protocoloAplicado.nome : ""}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {mode === "anamnese-edit" && anamneseDraft && currentPatient && (
+              <div className="max-w-3xl mx-auto flex flex-col gap-4">
+                <div>
+                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, color: T.ink }}>Anamnese — {currentPatient.nome}</div>
+                  <div style={{ fontSize: 13, color: T.inkSoft }}>Preenchida uma única vez; edite aqui sempre que precisar atualizar.</div>
+                </div>
+                <ClinicoForm sections={ANAMNESE_GERAL_SECTIONS} startNumber={1} clinico={anamneseDraft} setClinico={setAnamneseDraft} />
+                <div className="flex justify-end gap-3 pb-8">
+                  <button onClick={() => { setAnamneseDraft(null); setMode("patient"); }} style={{ fontSize: 13.5, color: T.inkSoft, padding: "8px 14px" }}>Cancelar</button>
+                  <button onClick={saveAnamnese} className="flex items-center gap-1.5" style={{ fontSize: 14, color: "white", background: T.accent, borderRadius: 8, padding: "9px 18px", fontWeight: 500 }}>
+                    <Save size={15} /> Salvar anamnese
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode === "choose-area" && currentPatient && (
               <div className="max-w-2xl mx-auto flex flex-col gap-4 py-6">
                 <div>
-                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, color: T.ink }}>Qual a área do atendimento?</div>
-                  <div style={{ fontSize: 13.5, color: T.inkSoft }}>O protocolo se ajusta aos campos clínicos dessa área.</div>
+                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, color: T.ink }}>Atendimento de {currentPatient.nome} — qual área?</div>
+                  <div style={{ fontSize: 13.5, color: T.inkSoft }}>O protocolo se ajusta aos campos clínicos dessa área. Os dados do paciente não precisam ser repetidos.</div>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {AREA_ORDER.map((id) => {
@@ -2277,7 +3074,7 @@ export default function App() {
                     <AlertCircle size={15} /> Informe ao menos o nome do paciente para salvar.
                   </div>
                 )}
-                <RecordForm areaId={draftArea} record={draft} setRecord={setDraft} patientNames={patientNames} onSelectExisting={onSelectExisting} />
+                <RecordForm areaId={draftArea} record={draft} setRecord={setDraft} perfil={perfil} />
                 <div className="flex justify-end gap-3 pb-8">
                   <button onClick={cancelEdit} style={{ fontSize: 13.5, color: T.inkSoft, padding: "8px 14px" }}>Cancelar</button>
                   <button onClick={save} disabled={saving} className="flex items-center gap-1.5"
@@ -2301,17 +3098,17 @@ export default function App() {
               </div>
             )}
 
-            {mode === "casestudy" && activePatient && (
+            {mode === "casestudy" && currentPatient && (
               <CaseStudyPanel
-                patientName={activePatient}
-                notes={(caseStudies[slugify(activePatient)] || { notes: [] }).notes}
-                onAdd={(note) => addCaseNote(activePatient, note)}
-                onDelete={(id) => deleteCaseNote(activePatient, id)}
+                patientName={currentPatient.nome}
+                notes={(caseStudies[slugify(currentPatient.nome)] || { notes: [] }).notes}
+                onAdd={(note) => addCaseNote(currentPatient.nome, note)}
+                onDelete={(id) => deleteCaseNote(currentPatient.nome, id)}
               />
             )}
 
-            {mode === "report" && activePatient && (
-              <ReportView patientName={activePatient} sessions={patientGroups[activePatient] || []} />
+            {mode === "report" && currentPatient && (
+              <ReportView patientName={currentPatient.nome} sessions={currentPatientSessions} />
             )}
           </div>
         </div>
@@ -2329,10 +3126,10 @@ export default function App() {
             <RecordReadView record={current} />
           </div>
         )}
-        {mode === "report" && activePatient && (
+        {mode === "report" && currentPatient && (
           <div style={{ padding: 24 }}>
             <div style={{ textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Relatório de Acompanhamento</div>
-            <ReportView patientName={activePatient} sessions={patientGroups[activePatient] || []} />
+            <ReportView patientName={currentPatient.nome} sessions={currentPatientSessions} />
           </div>
         )}
       </div>
