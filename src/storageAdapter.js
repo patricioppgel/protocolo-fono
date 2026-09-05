@@ -10,6 +10,13 @@ import { supabase } from "./supabaseClient";
  *
  * Por padrão `shared = true`: este sistema é uma ficha clínica de
  * equipe (estagiários + supervisores veem os mesmos atendimentos).
+ *
+ * IMPORTANTE: os índices únicos de kv_store são PARCIAIS
+ * (`where shared = true` / `where shared = false`), e o Postgres
+ * não resolve `ON CONFLICT (coluna)` contra um índice parcial só
+ * citando as colunas — por isso `set()` NÃO usa `.upsert()` nativo
+ * aqui. Em vez disso, faz um select pra ver se a linha já existe e
+ * decide entre update/insert manualmente.
  */
 
 async function currentUserId() {
@@ -30,11 +37,36 @@ async function get(key, shared = true) {
 
 async function set(key, value, shared = true) {
   const uid = await currentUserId();
-  const row = { owner: uid, key, value: String(value), shared, updated_at: new Date().toISOString() };
-  const onConflict = shared ? "key" : "owner,key";
-  const { data, error } = await supabase.from("kv_store").upsert(row, { onConflict }).select("key,value,shared").maybeSingle();
+  const strValue = String(value);
+  const now = new Date().toISOString();
+
+  // 1) Verifica se já existe uma linha com essa chave (respeitando
+  //    a mesma regra de unicidade usada pelos índices parciais do banco).
+  let existingQuery = supabase.from("kv_store").select("id").eq("key", key).eq("shared", shared);
+  if (!shared) existingQuery = existingQuery.eq("owner", uid);
+  const { data: existing, error: selectError } = await existingQuery.maybeSingle();
+  if (selectError) throw selectError;
+
+  // 2) Atualiza se existir, insere se não existir — nunca usa
+  //    ON CONFLICT, então não depende do índice ser parcial ou não.
+  if (existing) {
+    const { data, error } = await supabase
+      .from("kv_store")
+      .update({ value: strValue, updated_at: now })
+      .eq("id", existing.id)
+      .select("key,value,shared")
+      .maybeSingle();
+    if (error) throw error;
+    return data || { key, value: strValue, shared };
+  }
+
+  const { data, error } = await supabase
+    .from("kv_store")
+    .insert({ owner: uid, key, value: strValue, shared, updated_at: now })
+    .select("key,value,shared")
+    .maybeSingle();
   if (error) throw error;
-  return data || { key, value: row.value, shared };
+  return data || { key, value: strValue, shared };
 }
 
 async function del(key, shared = true) {
