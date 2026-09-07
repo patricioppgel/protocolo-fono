@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import _ from "lodash";
 import * as XLSX from "xlsx";
+import { supabase } from "./supabaseClient";
 import {
   Plus, Search, Printer, Pencil, Trash2, Save, X, ChevronDown,
   ChevronRight, ClipboardList, User, Calendar, ArrowLeft, AlertCircle,
@@ -690,6 +691,175 @@ const slugify = (s) =>
   (s || "").trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "paciente";
+
+/* ---------------------------------------------------------------------
+   Idade calculada a partir da data de nascimento
+------------------------------------------------------------------------ */
+function calcularIdade(nascimentoStr) {
+  if (!nascimentoStr) return "";
+  const nasc = new Date(nascimentoStr + "T00:00:00");
+  if (isNaN(nasc.getTime())) return "";
+  const hoje = new Date();
+  if (nasc > hoje) return "";
+  let anos = hoje.getFullYear() - nasc.getFullYear();
+  let meses = hoje.getMonth() - nasc.getMonth();
+  let dias = hoje.getDate() - nasc.getDate();
+  if (dias < 0) meses -= 1;
+  if (meses < 0) { anos -= 1; meses += 12; }
+  if (anos === 0 && meses === 0) {
+    const diasTotais = Math.max(0, Math.floor((hoje - nasc) / 86400000));
+    return diasTotais <= 1 ? "recém-nascido(a)" : `${diasTotais} dias`;
+  }
+  if (anos === 0) return `${meses} ${meses === 1 ? "mês" : "meses"}`;
+  if (anos < 3 && meses > 0) return `${anos} ${anos === 1 ? "ano" : "anos"} e ${meses} ${meses === 1 ? "mês" : "meses"}`;
+  return `${anos} ${anos === 1 ? "ano" : "anos"}`;
+}
+
+/* ---------------------------------------------------------------------
+   Descrições de CID-10 (recorte com os códigos mais relevantes para a
+   prática fonoaudiológica — não é a tabela CID-10 completa, que tem
+   milhares de códigos. Se um código não estiver aqui, avisamos a
+   pessoa a checar a tabela oficial do DataSUS.)
+------------------------------------------------------------------------ */
+const CID_DESCRICOES = {
+  // Deficiência intelectual
+  "F70": "Retardo mental leve",
+  "F71": "Retardo mental moderado",
+  "F72": "Retardo mental grave",
+  "F73": "Retardo mental profundo",
+  "F78": "Outro retardo mental",
+  "F79": "Retardo mental não especificado",
+  // Transtornos globais do desenvolvimento
+  "F84": "Transtornos globais do desenvolvimento",
+  "F84.0": "Autismo infantil",
+  "F84.1": "Autismo atípico",
+  "F84.5": "Síndrome de Asperger",
+  "F84.8": "Outros transtornos globais do desenvolvimento",
+  "F84.9": "Transtorno global do desenvolvimento não especificado",
+  // Desenvolvimento da fala e linguagem
+  "F80": "Transtornos específicos do desenvolvimento da fala e da linguagem",
+  "F80.0": "Transtorno específico da articulação da fala",
+  "F80.1": "Transtorno expressivo de linguagem",
+  "F80.2": "Transtorno receptivo de linguagem",
+  "F80.3": "Afasia adquirida com epilepsia (síndrome de Landau-Kleffner)",
+  "F80.8": "Outros transtornos do desenvolvimento da fala ou da linguagem",
+  "F80.9": "Transtorno não especificado do desenvolvimento da fala ou da linguagem",
+  // Desenvolvimento das habilidades escolares
+  "F81": "Transtornos específicos do desenvolvimento das habilidades escolares",
+  "F81.0": "Transtorno específico de leitura (dislexia)",
+  "F81.1": "Transtorno específico da soletração",
+  "F81.2": "Transtorno específico da habilidade em aritmética (discalculia)",
+  "F81.3": "Transtorno misto das habilidades escolares",
+  "F81.8": "Outros transtornos do desenvolvimento das habilidades escolares",
+  "F81.9": "Transtorno não especificado do desenvolvimento das habilidades escolares",
+  "F82": "Transtorno específico do desenvolvimento motor",
+  "F83": "Transtornos específicos misto do desenvolvimento",
+  "F88": "Outros transtornos do desenvolvimento psicológico",
+  "F89": "Transtorno do desenvolvimento psicológico não especificado",
+  // Comportamentais/emocionais na infância
+  "F90": "Transtornos hipercinéticos",
+  "F90.0": "Distúrbio da atividade e da atenção (TDAH)",
+  "F95": "Tiques",
+  "F95.2": "Transtorno de tique motor ou vocal combinado (síndrome de Tourette)",
+  "F98": "Outros transtornos do comportamento e emocionais com início na infância/adolescência",
+  "F98.5": "Gagueira (tartamudez)",
+  "F98.6": "Linguagem precipitada (taquifemia)",
+  // Demências
+  "F00": "Demência na doença de Alzheimer",
+  "F01": "Demência vascular",
+  "F02": "Demência em outras doenças classificadas em outra parte",
+  "F03": "Demência não especificada",
+  "G30": "Doença de Alzheimer",
+  "G20": "Doença de Parkinson",
+  "G31": "Outras doenças degenerativas do sistema nervoso",
+  "G35": "Esclerose múltipla",
+  // Paralisia cerebral e sequelas neurológicas
+  "G80": "Paralisia cerebral",
+  "G80.0": "Paralisia cerebral tetraplégica espástica",
+  "G80.1": "Paralisia cerebral diplégica espástica",
+  "G80.2": "Paralisia cerebral hemiplégica espástica",
+  "G80.3": "Paralisia cerebral discinética",
+  "G80.4": "Paralisia cerebral atáxica",
+  "G80.8": "Outras paralisias cerebrais",
+  "G80.9": "Paralisia cerebral não especificada",
+  "I69": "Sequelas de doenças cerebrovasculares",
+  "I69.0": "Sequelas de hemorragia subaracnoide",
+  "I69.1": "Sequelas de hemorragia intracerebral",
+  "I69.3": "Sequelas de infarto cerebral (AVC isquêmico)",
+  "I69.4": "Sequelas de acidente vascular cerebral não especificado como hemorrágico ou isquêmico",
+  "I69.8": "Sequelas de outras doenças cerebrovasculares e das não especificadas",
+  "S06": "Traumatismo intracraniano (TCE)",
+  // Fala, voz e linguagem adquiridos
+  "R47": "Distúrbios da fala não classificados em outra parte",
+  "R47.0": "Disfasia e afasia",
+  "R47.1": "Disartria",
+  "R47.8": "Outros distúrbios da fala e os não especificados",
+  "R48": "Dislexia e outras disfunções simbólicas não classificadas em outra parte",
+  "R48.0": "Dislexia e alexia",
+  "R48.1": "Agnosia",
+  "R48.2": "Apraxia",
+  "R48.8": "Outras disfunções simbólicas e as não especificadas",
+  "R49": "Distúrbios da voz",
+  "R49.0": "Disfonia",
+  "R49.1": "Afonia",
+  "R49.2": "Hipernasalidade e hiponasalidade",
+  "R49.8": "Outros distúrbios da voz",
+  "R49.9": "Distúrbio da voz não especificado",
+  "R13": "Disfagia",
+  "K22.2": "Espasmo do esôfago (pode cursar com disfagia)",
+  // Fissuras labiopalatinas
+  "Q35": "Fenda palatina",
+  "Q36": "Fenda labial (lábio leporino)",
+  "Q37": "Fenda labial com fenda palatina",
+  "Q38.1": "Anquiloglossia (língua presa)",
+  // Audição
+  "H90": "Perda de audição por transtorno de condução e neurossensorial",
+  "H90.0": "Perda de audição condutiva bilateral",
+  "H90.1": "Perda de audição condutiva unilateral",
+  "H90.2": "Perda de audição condutiva não especificada",
+  "H90.3": "Perda de audição neurossensorial bilateral",
+  "H90.4": "Perda de audição neurossensorial unilateral",
+  "H90.5": "Perda de audição neurossensorial não especificada",
+  "H90.6": "Perda de audição condutiva e neurossensorial mista, bilateral",
+  "H90.7": "Perda de audição condutiva e neurossensorial mista, unilateral",
+  "H90.8": "Perda de audição condutiva e neurossensorial mista, não especificada",
+  "H91": "Outras perdas de audição",
+  "H91.0": "Perda de audição ototóxica",
+  "H91.1": "Presbiacusia",
+  "H91.2": "Perda de audição súbita idiopática",
+  "H91.3": "Surdo-mudez não classificada em outra parte",
+  "H91.9": "Perda de audição não especificada",
+  "H93.1": "Zumbido (tinnitus)",
+  "H65": "Otite média não supurativa",
+  "H66": "Otite média supurativa e as não especificadas",
+  // Prematuridade e período neonatal
+  "P07": "Transtornos relacionados com curta duração da gestação e baixo peso ao nascer",
+  "P07.0": "Peso extremamente baixo ao nascer",
+  "P07.1": "Outros pesos baixos ao nascer",
+  "P07.2": "Imaturidade extrema",
+  "P07.3": "Outros recém-nascidos pré-termo",
+  "P91.6": "Encefalopatia hipóxico-isquêmica do recém-nascido",
+  // Síndromes genéticas comuns
+  "Q90": "Síndrome de Down",
+  "Q90.9": "Síndrome de Down não especificada",
+  "Q99.2": "Síndrome do X frágil",
+  // Voz/laringe estruturais
+  "J38.0": "Paralisia das cordas vocais e da laringe",
+  "J38.2": "Nódulos das cordas vocais",
+  "J38.3": "Outras doenças das cordas vocais",
+  "C32": "Neoplasia maligna da laringe (câncer de laringe)",
+};
+
+function buscarDescricoesCid(cidTexto) {
+  if (!cidTexto) return [];
+  const codigos = Array.from(new Set((cidTexto.toUpperCase().match(/[A-Z]\d{2}(?:\.\d+)?/g) || [])));
+  return codigos.map((codigo) => {
+    if (CID_DESCRICOES[codigo]) return { codigo, descricao: CID_DESCRICOES[codigo] };
+    const categoria = codigo.split(".")[0];
+    if (CID_DESCRICOES[categoria]) return { codigo, descricao: CID_DESCRICOES[categoria] + " (categoria geral)" };
+    return { codigo, descricao: null };
+  });
+}
 
 /* ---------------------------------------------------------------------
    Small presentational primitives
@@ -2104,6 +2274,13 @@ function RecordReadView({ record }) {
           <ReadRow label="CID" value={p.cid} />
           <ReadRow label="Tempo de acompanhamento" value={p.tempoAcompanhamento} />
         </div>
+        {p.cid && buscarDescricoesCid(p.cid).some((d) => d.descricao) && (
+          <div className="flex flex-col gap-0.5" style={{ marginTop: 6 }}>
+            {buscarDescricoesCid(p.cid).filter((d) => d.descricao).map(({ codigo, descricao }) => (
+              <span key={codigo} style={{ fontSize: 10.5, color: T.inkFaint }}>{codigo}: {descricao}</span>
+            ))}
+          </div>
+        )}
       </PrintSection>
 
       <ClinicoReadView sections={AREAS[record.area].sections} clinico={record.clinico} />
@@ -2576,6 +2753,23 @@ export default function App() {
   const startEditPatientInfo = () => setPatientEditDraft({ ..._.pick(currentPatient, ["nome", "instituicao", "nascimento", "idade", "responsavel", "hipotese", "cid", "tempoAcompanhamento"]) });
   const savePatientInfo = async () => {
     await savePatientData(selectedPatientSlug, (prev) => ({ ...prev, ...patientEditDraft }));
+    // Propaga os dados atualizados do paciente para todas as fichas de
+    // atendimento já criadas (elas guardam uma cópia própria de nome,
+    // nascimento, idade, hipótese e CID) — sem isso, uma ficha antiga
+    // continuaria mostrando os dados de antes da edição.
+    const camposPaciente = ["nome", "nascimento", "idade", "responsavel", "hipotese", "cid", "tempoAcompanhamento"];
+    const idsDoPaciente = Object.keys(records).filter((id) => records[id].pacienteSlug === selectedPatientSlug);
+    if (idsDoPaciente.length) {
+      const atualizados = {};
+      for (const id of idsDoPaciente) {
+        const recAtualizado = { ...records[id], paciente: { ..._.pick(patientEditDraft, camposPaciente) } };
+        try {
+          await window.storage.set("atendimento:" + id, JSON.stringify(recAtualizado));
+          atualizados[id] = recAtualizado;
+        } catch (e) {}
+      }
+      setRecords((prev) => ({ ...prev, ...atualizados }));
+    }
     setPatientEditDraft(null);
   };
 
@@ -2725,12 +2919,36 @@ export default function App() {
           </div>
           <Field label="Seu nome"><TextInput value={draft.nome} onChange={(v) => setPerfilDraft({ ...draft, nome: v })} placeholder="Nome completo" /></Field>
           {typeof window !== "undefined" && window.authProfile ? (
-            <Field label="Seu papel na equipe">
-              <div style={{ ...inputBase, background: T.surfaceSoft, color: T.inkSoft }}>
-                {{ estagiario: "Estagiário(a)", fonoaudiologo: "Fonoaudiólogo(a)", supervisor: "Supervisor(a)", admin: "Administrador(a)" }[window.authProfile.papel] || "Estagiário(a)"}
-              </div>
-              <span style={{ fontSize: 10.5, color: T.inkFaint }}>Definido por um administrador do sistema — fale com ele(a) para alterar.</span>
-            </Field>
+            window.authProfile.papel === "estagiario" || window.authProfile.papel === "fonoaudiologo" ? (
+              <Field label="Seu papel na equipe">
+                <select
+                  value={window.authProfile.papel}
+                  onChange={async (e) => {
+                    const novoPapel = e.target.value;
+                    try {
+                      const { error } = await supabase.rpc("set_my_papel", { novo_papel: novoPapel });
+                      if (error) throw error;
+                      window.authProfile = { ...window.authProfile, papel: novoPapel };
+                      setPerfilDraft({ ...draft });
+                    } catch (err) {
+                      window.alert(err.message || "Não foi possível atualizar seu papel agora.");
+                    }
+                  }}
+                  style={inputBase}
+                >
+                  <option value="estagiario">Estagiário(a)</option>
+                  <option value="fonoaudiologo">Fonoaudiólogo(a)</option>
+                </select>
+                <span style={{ fontSize: 10.5, color: T.inkFaint }}>Você pode alternar livremente entre Estagiário(a) e Fonoaudiólogo(a). Para Supervisor(a) ou Administrador(a), fale com um administrador.</span>
+              </Field>
+            ) : (
+              <Field label="Seu papel na equipe">
+                <div style={{ ...inputBase, background: T.surfaceSoft, color: T.inkSoft }}>
+                  {{ estagiario: "Estagiário(a)", fonoaudiologo: "Fonoaudiólogo(a)", supervisor: "Supervisor(a)", admin: "Administrador(a)" }[window.authProfile.papel] || "Estagiário(a)"}
+                </div>
+                <span style={{ fontSize: 10.5, color: T.inkFaint }}>Definido por um administrador do sistema — fale com ele(a) para alterar.</span>
+              </Field>
+            )
           ) : (
             <Field label="Seu papel na equipe">
               <select value={draft.papel || "estagiario"} onChange={(e) => setPerfilDraft({ ...draft, papel: e.target.value })} style={inputBase}>
@@ -2942,11 +3160,22 @@ export default function App() {
                     <div className="grid sm:grid-cols-2 gap-3">
                       <Field label="Nome" span={2}><TextInput value={patientEditDraft.nome} onChange={(v) => setPatientEditDraft((p) => ({ ...p, nome: v }))} /></Field>
                       <Field label="Instituição" span={2}><TextInput value={patientEditDraft.instituicao} onChange={(v) => setPatientEditDraft((p) => ({ ...p, instituicao: v }))} /></Field>
-                      <Field label="Nascimento"><TextInput type="date" value={patientEditDraft.nascimento} onChange={(v) => setPatientEditDraft((p) => ({ ...p, nascimento: v }))} /></Field>
+                      <Field label="Nascimento"><TextInput type="date" value={patientEditDraft.nascimento} onChange={(v) => setPatientEditDraft((p) => ({ ...p, nascimento: v, idade: calcularIdade(v) }))} /></Field>
                       <Field label="Idade"><TextInput value={patientEditDraft.idade} onChange={(v) => setPatientEditDraft((p) => ({ ...p, idade: v }))} /></Field>
                       <Field label="Responsável" span={2}><TextInput value={patientEditDraft.responsavel} onChange={(v) => setPatientEditDraft((p) => ({ ...p, responsavel: v }))} /></Field>
                       <Field label="Hipótese diagnóstica" span={2}><TextInput value={patientEditDraft.hipotese} onChange={(v) => setPatientEditDraft((p) => ({ ...p, hipotese: v }))} /></Field>
-                      <Field label="CID"><TextInput value={patientEditDraft.cid} onChange={(v) => setPatientEditDraft((p) => ({ ...p, cid: v }))} /></Field>
+                      <Field label="CID" span={2}>
+                        <TextInput value={patientEditDraft.cid} onChange={(v) => setPatientEditDraft((p) => ({ ...p, cid: v }))} />
+                        {patientEditDraft.cid && (
+                          <div className="flex flex-col gap-0.5" style={{ marginTop: 3 }}>
+                            {buscarDescricoesCid(patientEditDraft.cid).map(({ codigo, descricao }) => (
+                              <span key={codigo} style={{ fontSize: 10.5, color: descricao ? T.inkFaint : T.warn }}>
+                                {codigo}: {descricao || "código não encontrado na nossa lista — confira a tabela CID-10 oficial (DataSUS)"}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </Field>
                       <Field label="Tempo de acompanhamento"><TextInput value={patientEditDraft.tempoAcompanhamento} onChange={(v) => setPatientEditDraft((p) => ({ ...p, tempoAcompanhamento: v }))} /></Field>
                     </div>
                     <div className="flex justify-end gap-3">
