@@ -2657,25 +2657,26 @@ export default function App() {
   const patientGroups = useMemo(() => {
     const groups = {};
     Object.values(records).forEach((r) => {
-      const name = (r.paciente.nome || "Sem nome").trim();
-      if (!groups[name]) groups[name] = [];
-      groups[name].push(r);
+      // Usa sempre o slug como chave de identidade do paciente — nunca o
+      // texto do nome. Se o nome do atendimento mudar por qualquer motivo
+      // (edição, espaço a mais, etc.), o paciente continua sendo o mesmo.
+      const key = r.pacienteSlug || slugify(r.paciente.nome || "Sem nome");
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r);
     });
     Object.values(groups).forEach((list) => list.sort((a, b) => (b.identificacao.data || "").localeCompare(a.identificacao.data || "")));
     return groups;
   }, [records]);
 
-  // Unified patient rows: formal Paciente entities + legacy names inferred from atendimentos.
+  // Unified patient rows: formal Paciente entities + legacy slugs inferred from atendimentos.
   const patientRows = useMemo(() => {
-    const slugs = new Set(Object.keys(patients));
-    Object.keys(patientGroups).forEach((n) => { if (n !== "Sem nome") slugs.add(slugify(n)); });
+    const slugs = new Set([...Object.keys(patients), ...Object.keys(patientGroups)]);
     const minhaInstituicao = (perfil?.instituicao || "").trim().toLowerCase();
     const rows = Array.from(slugs)
       .map((slug) => {
         const p = patients[slug];
-        const legacyName = Object.keys(patientGroups).find((n) => slugify(n) === slug);
-        const nome = p?.nome || legacyName || slug;
-        const sessions = patientGroups[nome] || [];
+        const sessions = patientGroups[slug] || [];
+        const nome = p?.nome || sessions[0]?.paciente.nome || slug;
         return { slug, nome, instituicao: p?.instituicao || "", sessionsCount: sessions.length, lastDate: sessions[0]?.identificacao.data || "" };
       })
       .filter((r) => !minhaInstituicao || !r.instituicao || r.instituicao.trim().toLowerCase() === minhaInstituicao);
@@ -2694,7 +2695,7 @@ export default function App() {
   const persistPatientIndex = async (slugs) => { try { await window.storage.set("patient-index", JSON.stringify(slugs)); } catch (e) {} };
 
   const currentPatient = selectedPatientSlug ? patients[selectedPatientSlug] : null;
-  const currentPatientSessions = currentPatient ? (patientGroups[currentPatient.nome] || []) : [];
+  const currentPatientSessions = selectedPatientSlug ? (patientGroups[selectedPatientSlug] || []) : [];
 
   const savePatientData = async (slug, updater) => {
     const base = patients[slug] || blankPatient(slug, slug);
@@ -2722,10 +2723,11 @@ export default function App() {
 
   const openPatient = (slug) => {
     if (!patients[slug]) {
-      const legacyName = Object.keys(patientGroups).find((n) => slugify(n) === slug);
+      const sessions = patientGroups[slug] || [];
+      const legacyName = sessions[0]?.paciente.nome;
       if (legacyName) {
-        const latest = (patientGroups[legacyName] || [])[0];
         const seed = blankPatient(legacyName, slug);
+        const latest = sessions[0];
         if (latest) {
           seed.nascimento = latest.paciente.nascimento || "";
           seed.idade = latest.paciente.idade || "";
@@ -2797,7 +2799,7 @@ export default function App() {
   const openView = (id) => {
     setSelectedId(id);
     const rec = records[id];
-    if (rec) setSelectedPatientSlug(slugify(rec.paciente.nome));
+    if (rec) setSelectedPatientSlug(rec.pacienteSlug || slugify(rec.paciente.nome));
     setMode("view");
     setMobileListOpen(false);
   };
